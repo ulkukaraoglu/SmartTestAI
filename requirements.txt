@@ -1,1 +1,14 @@
+#1
+
+
+requests
+python-dotenv
+rich
+colorama
+pandas
+matplotlib
+fastapi
+uvicorn
+pytest
+black
 
