@@ -1,0 +1,220 @@
+{
+  "timestamp": "2026-01-06T21:29:40.686192",
+  "projects": {
+    "flask_demo": {
+      "ground_truth_count": 0,
+      "snyk": {
+        "success": false,
+        "error": "HTTP 500: {\n  \"error\": \"[WinError 2] Sistem belirtilen dosyay\\u0131 bulam\\u0131yor\",\n  \"project\": \"flask_demo\"\n}\n"
+      },
+      "deepsource": {
+        "success": true,
+        "metrics": {
+          "critical": 0,
+          "high": 0,
+          "low": 0,
+          "medium": 0,
+          "scan_duration": 0.0,
+          "tool_name": "DeepSource",
+          "total_issues": 0
+        },
+        "advanced_metrics": {
+          "code_coverage": {
+            "code_coverage_percent": 0.0,
+            "files_analyzed": 0,
+            "lines_analyzed": 0
+          },
+          "code_quality_score": null,
+          "defect_detection_accuracy": {
+            "f1_score": 0.0,
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_negatives": 0,
+            "true_positives": 0
+          },
+          "false_positive_rate": 0.0,
+          "operational_efficiency": {
+            "average_scan_time": 0.0,
+            "cpu_usage_percent": 116.4,
+            "memory_usage_mb": 55.5625
+          }
+        },
+        "scan_duration": 2.166408061981201
+      }
+    },
+    "vulnerable_sql_injection": {
+      "ground_truth_count": 2,
+      "snyk": {
+        "success": false,
+        "error": "HTTP 500: {\n  \"error\": \"[WinError 2] Sistem belirtilen dosyay\\u0131 bulam\\u0131yor\",\n  \"project\": \"vulnerable_sql_injection\"\n}\n"
+      },
+      "deepsource": {
+        "success": true,
+        "metrics": {
+          "critical": 0,
+          "high": 0,
+          "low": 0,
+          "medium": 0,
+          "scan_duration": 0.0,
+          "tool_name": "DeepSource",
+          "total_issues": 0
+        },
+        "advanced_metrics": {
+          "code_coverage": {
+            "code_coverage_percent": 0.0,
+            "files_analyzed": 0,
+            "lines_analyzed": 0
+          },
+          "code_quality_score": null,
+          "defect_detection_accuracy": {
+            "f1_score": 0.0,
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_negatives": 0,
+            "true_positives": 0
+          },
+          "false_positive_rate": 0.0,
+          "operational_efficiency": {
+            "average_scan_time": 0.0,
+            "cpu_usage_percent": 116.4,
+            "memory_usage_mb": 55.078125
+          }
+        },
+        "scan_duration": 2.1544747352600098
+      }
+    },
+    "vulnerable_command_injection": {
+      "ground_truth_count": 3,
+      "snyk": {
+        "success": false,
+        "error": "HTTP 500: {\n  \"error\": \"[WinError 2] Sistem belirtilen dosyay\\u0131 bulam\\u0131yor\",\n  \"project\": \"vulnerable_command_injection\"\n}\n"
+      },
+      "deepsource": {
+        "success": true,
+        "metrics": {
+          "critical": 0,
+          "high": 0,
+          "low": 0,
+          "medium": 0,
+          "scan_duration": 0.0,
+          "tool_name": "DeepSource",
+          "total_issues": 0
+        },
+        "advanced_metrics": {
+          "code_coverage": {
+            "code_coverage_percent": 0.0,
+            "files_analyzed": 0,
+            "lines_analyzed": 0
+          },
+          "code_quality_score": null,
+          "defect_detection_accuracy": {
+            "f1_score": 0.0,
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_negatives": 0,
+            "true_positives": 0
+          },
+          "false_positive_rate": 0.0,
+          "operational_efficiency": {
+            "average_scan_time": 0.0,
+            "cpu_usage_percent": 86.0,
+            "memory_usage_mb": 55.046875
+          }
+        },
+        "scan_duration": 2.1895482540130615
+      }
+    },
+    "vulnerable_xss": {
+      "ground_truth_count": 3,
+      "snyk": {
+        "success": false,
+        "error": "HTTP 500: {\n  \"error\": \"[WinError 2] Sistem belirtilen dosyay\\u0131 bulam\\u0131yor\",\n  \"project\": \"vulnerable_xss\"\n}\n"
+      },
+      "deepsource": {
+        "success": true,
+        "metrics": {
+          "critical": 0,
+          "high": 0,
+          "low": 0,
+          "medium": 0,
+          "scan_duration": 0.0,
+          "tool_name": "DeepSource",
+          "total_issues": 0
+        },
+        "advanced_metrics": {
+          "code_coverage": {
+            "code_coverage_percent": 0.0,
+            "files_analyzed": 0,
+            "lines_analyzed": 0
+          },
+          "code_quality_score": null,
+          "defect_detection_accuracy": {
+            "f1_score": 0.0,
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_negatives": 0,
+            "true_positives": 0
+          },
+          "false_positive_rate": 0.0,
+          "operational_efficiency": {
+            "average_scan_time": 0.0,
+            "cpu_usage_percent": 85.2,
+            "memory_usage_mb": 55.00390625
+          }
+        },
+        "scan_duration": 2.17581844329834
+      }
+    },
+    "vulnerable_hardcoded_creds": {
+      "ground_truth_count": 5,
+      "snyk": {
+        "success": false,
+        "error": "HTTP 500: {\n  \"error\": \"[WinError 2] Sistem belirtilen dosyay\\u0131 bulam\\u0131yor\",\n  \"project\": \"vulnerable_hardcoded_creds\"\n}\n"
+      },
+      "deepsource": {
+        "success": true,
+        "metrics": {
+          "critical": 0,
+          "high": 0,
+          "low": 0,
+          "medium": 0,
+          "scan_duration": 0.0,
+          "tool_name": "DeepSource",
+          "total_issues": 0
+        },
+        "advanced_metrics": {
+          "code_coverage": {
+            "code_coverage_percent": 0.0,
+            "files_analyzed": 0,
+            "lines_analyzed": 0
+          },
+          "code_quality_score": null,
+          "defect_detection_accuracy": {
+            "f1_score": 0.0,
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_negatives": 0,
+            "true_positives": 0
+          },
+          "false_positive_rate": 0.0,
+          "operational_efficiency": {
+            "average_scan_time": 0.0,
+            "cpu_usage_percent": 0.0,
+            "memory_usage_mb": 54.3359375
+          }
+        },
+        "scan_duration": 2.1784300804138184
+      }
+    }
+  }
+}

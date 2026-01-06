@@ -1,0 +1,18 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+
+# Snyk
+.snyk
+snyk-*.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test projects - all should be tracked
+# test_projects/* removed to allow all test projects
