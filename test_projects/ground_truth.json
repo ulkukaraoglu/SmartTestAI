@@ -1,0 +1,103 @@
+{
+  "vulnerable_sql_injection": [
+    {
+      "file": "app.py",
+      "line": 20,
+      "type": "SQL_INJECTION",
+      "severity": "high",
+      "description": "SQL Injection açığı: user_id parametresi doğrudan SQL sorgusuna ekleniyor"
+    },
+    {
+      "file": "app.py",
+      "line": 33,
+      "type": "SQL_INJECTION",
+      "severity": "high",
+      "description": "SQL Injection açığı: search parametresi doğrudan SQL sorgusuna ekleniyor"
+    }
+  ],
+  "vulnerable_command_injection": [
+    {
+      "file": "app.py",
+      "line": 18,
+      "type": "COMMAND_INJECTION",
+      "severity": "critical",
+      "description": "Command Injection açığı: host parametresi doğrudan shell komutuna ekleniyor"
+    },
+    {
+      "file": "app.py",
+      "line": 28,
+      "type": "COMMAND_INJECTION",
+      "severity": "critical",
+      "description": "Command Injection açığı: command parametresi doğrudan shell komutuna ekleniyor"
+    },
+    {
+      "file": "app.py",
+      "line": 37,
+      "type": "PATH_TRAVERSAL",
+      "severity": "high",
+      "description": "Path Traversal açığı: filename parametresi doğrudan dosya okuma işleminde kullanılıyor"
+    }
+  ],
+  "vulnerable_xss": [
+    {
+      "file": "app.py",
+      "line": 15,
+      "type": "XSS",
+      "severity": "medium",
+      "description": "XSS açığı: user input doğrudan HTML'e ekleniyor"
+    },
+    {
+      "file": "app.py",
+      "line": 25,
+      "type": "XSS",
+      "severity": "medium",
+      "description": "XSS açığı: search parametresi doğrudan HTML'e ekleniyor"
+    },
+    {
+      "file": "app.py",
+      "line": 33,
+      "type": "XSS",
+      "severity": "medium",
+      "description": "XSS açığı: username parametresi doğrudan HTML'e ekleniyor"
+    }
+  ],
+  "vulnerable_hardcoded_creds": [
+    {
+      "file": "app.py",
+      "line": 8,
+      "type": "HARDCODED_CREDENTIALS",
+      "severity": "critical",
+      "description": "Hardcoded database password"
+    },
+    {
+      "file": "app.py",
+      "line": 9,
+      "type": "HARDCODED_CREDENTIALS",
+      "severity": "critical",
+      "description": "Hardcoded API key"
+    },
+    {
+      "file": "app.py",
+      "line": 20,
+      "type": "WEAK_HASHING",
+      "severity": "high",
+      "description": "Weak password hashing: MD5 kullanımı"
+    },
+    {
+      "file": "app.py",
+      "line": 33,
+      "type": "HARDCODED_CREDENTIALS",
+      "severity": "high",
+      "description": "Hardcoded API key kullanımı"
+    },
+    {
+      "file": "app.py",
+      "line": 40,
+      "type": "DEBUG_MODE",
+      "severity": "medium",
+      "description": "Debug mode production'da açık"
+    }
+  ],
+  "flask_demo": []
+}
+
