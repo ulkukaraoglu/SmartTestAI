@@ -1,0 +1,655 @@
+{
+  "timestamp": "2026-01-06T21:33:39.399319",
+  "projects": {
+    "flask_demo": {
+      "ground_truth_count": 0,
+      "snyk": {
+        "success": true,
+        "metrics": {
+          "critical": 0,
+          "high": 0,
+          "low": 0,
+          "medium": 0,
+          "scan_duration": 0.0,
+          "tool_name": "Snyk Code",
+          "total_issues": 0
+        },
+        "advanced_metrics": {
+          "code_coverage": {
+            "code_coverage_percent": 100.0,
+            "files_analyzed": 1,
+            "lines_analyzed": 0
+          },
+          "code_quality_score": null,
+          "defect_detection_accuracy": {
+            "f1_score": 0.0,
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_negatives": 0,
+            "true_positives": 0
+          },
+          "false_positive_rate": 0.0,
+          "operational_efficiency": {
+            "average_scan_time": 0.0,
+            "cpu_usage_percent": 86.0,
+            "memory_usage_mb": 54.5703125
+          }
+        },
+        "scan_duration": 10.148960590362549,
+        "detected_issues": [],
+        "detected_issues_count": 0
+      },
+      "deepsource": {
+        "success": true,
+        "metrics": {
+          "critical": 0,
+          "high": 0,
+          "low": 0,
+          "medium": 0,
+          "scan_duration": 0.0,
+          "tool_name": "DeepSource",
+          "total_issues": 0
+        },
+        "advanced_metrics": {
+          "code_coverage": {
+            "code_coverage_percent": 0.0,
+            "files_analyzed": 0,
+            "lines_analyzed": 0
+          },
+          "code_quality_score": null,
+          "defect_detection_accuracy": {
+            "f1_score": 0.0,
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_negatives": 0,
+            "true_positives": 0
+          },
+          "false_positive_rate": 0.0,
+          "operational_efficiency": {
+            "average_scan_time": 0.0,
+            "cpu_usage_percent": 86.0,
+            "memory_usage_mb": 54.46875
+          }
+        },
+        "scan_duration": 2.1854560375213623,
+        "detected_issues": [
+          {
+            "file": "app.py",
+            "line": 10,
+            "type": "DS-PY-001",
+            "severity": "HIGH",
+            "description": "Mock DeepSource issue - High severity"
+          },
+          {
+            "file": "app.py",
+            "line": 20,
+            "type": "DS-PY-002",
+            "severity": "MEDIUM",
+            "description": "Mock DeepSource issue - Medium severity"
+          }
+        ],
+        "detected_issues_count": 2
+      }
+    },
+    "vulnerable_sql_injection": {
+      "ground_truth_count": 2,
+      "snyk": {
+        "success": true,
+        "metrics": {
+          "critical": 0,
+          "high": 2,
+          "low": 0,
+          "medium": 2,
+          "scan_duration": 0.0,
+          "tool_name": "Snyk Code",
+          "total_issues": 4
+        },
+        "advanced_metrics": {
+          "code_coverage": {
+            "code_coverage_percent": 100.0,
+            "files_analyzed": 1,
+            "lines_analyzed": 0
+          },
+          "code_quality_score": null,
+          "defect_detection_accuracy": {
+            "f1_score": 0.0,
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_negatives": 0,
+            "true_positives": 0
+          },
+          "false_positive_rate": 0.0,
+          "operational_efficiency": {
+            "average_scan_time": 0.0,
+            "cpu_usage_percent": 86.0,
+            "memory_usage_mb": 55.1640625
+          }
+        },
+        "scan_duration": 13.168952465057373,
+        "detected_issues": [
+          {
+            "file": "app.py",
+            "line": 29,
+            "type": "python/Sqli",
+            "severity": "error",
+            "description": "Unsanitized input from an HTTP parameter flows into execute, where it is used in an SQL query. This may result in an SQL Injection vulnerability."
+          },
+          {
+            "file": "app.py",
+            "line": 45,
+            "type": "python/Sqli",
+            "severity": "error",
+            "description": "Unsanitized input from an HTTP parameter flows into execute, where it is used in an SQL query. This may result in an SQL Injection vulnerability."
+          },
+          {
+            "file": "app.py",
+            "line": 32,
+            "type": "python/XSS",
+            "severity": "warning",
+            "description": "Unsanitized input from a database flows into the return value of get_user, where it is used to render an HTML page returned to the user. This may result in a Cross-Site Scripting attack (XSS)."
+          },
+          {
+            "file": "app.py",
+            "line": 48,
+            "type": "python/XSS",
+            "severity": "warning",
+            "description": "Unsanitized input from a database flows into the return value of search_users, where it is used to render an HTML page returned to the user. This may result in a Cross-Site Scripting attack (XSS)."
+          }
+        ],
+        "detected_issues_count": 4,
+        "comparison_metrics": {
+          "precision": 0.25,
+          "recall": 0.5,
+          "f1_score": 0.3333333333333333,
+          "true_positives": 1,
+          "false_positives": 3,
+          "false_negatives": 1
+        }
+      },
+      "deepsource": {
+        "success": true,
+        "metrics": {
+          "critical": 0,
+          "high": 0,
+          "low": 0,
+          "medium": 0,
+          "scan_duration": 0.0,
+          "tool_name": "DeepSource",
+          "total_issues": 0
+        },
+        "advanced_metrics": {
+          "code_coverage": {
+            "code_coverage_percent": 0.0,
+            "files_analyzed": 0,
+            "lines_analyzed": 0
+          },
+          "code_quality_score": null,
+          "defect_detection_accuracy": {
+            "f1_score": 0.0,
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_negatives": 0,
+            "true_positives": 0
+          },
+          "false_positive_rate": 0.0,
+          "operational_efficiency": {
+            "average_scan_time": 0.0,
+            "cpu_usage_percent": 85.2,
+            "memory_usage_mb": 54.91015625
+          }
+        },
+        "scan_duration": 2.173060178756714,
+        "detected_issues": [
+          {
+            "file": "app.py",
+            "line": 10,
+            "type": "DS-PY-001",
+            "severity": "HIGH",
+            "description": "Mock DeepSource issue - High severity"
+          },
+          {
+            "file": "app.py",
+            "line": 20,
+            "type": "DS-PY-002",
+            "severity": "MEDIUM",
+            "description": "Mock DeepSource issue - Medium severity"
+          }
+        ],
+        "detected_issues_count": 2,
+        "comparison_metrics": {
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1_score": 0.5,
+          "true_positives": 1,
+          "false_positives": 1,
+          "false_negatives": 1
+        }
+      }
+    },
+    "vulnerable_command_injection": {
+      "ground_truth_count": 3,
+      "snyk": {
+        "success": true,
+        "metrics": {
+          "critical": 0,
+          "high": 6,
+          "low": 0,
+          "medium": 0,
+          "scan_duration": 0.0,
+          "tool_name": "Snyk Code",
+          "total_issues": 6
+        },
+        "advanced_metrics": {
+          "code_coverage": {
+            "code_coverage_percent": 100.0,
+            "files_analyzed": 1,
+            "lines_analyzed": 0
+          },
+          "code_quality_score": null,
+          "defect_detection_accuracy": {
+            "f1_score": 0.0,
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_negatives": 0,
+            "true_positives": 0
+          },
+          "false_positive_rate": 0.0,
+          "operational_efficiency": {
+            "average_scan_time": 0.0,
+            "cpu_usage_percent": 100.8,
+            "memory_usage_mb": 57.90625
+          }
+        },
+        "scan_duration": 11.673500776290894,
+        "detected_issues": [
+          {
+            "file": "app.py",
+            "line": 23,
+            "type": "python/CommandInjection",
+            "severity": "error",
+            "description": "Unsanitized input from an HTTP parameter flows into subprocess.run, where it is used as a shell command. This may result in a Command Injection vulnerability."
+          },
+          {
+            "file": "app.py",
+            "line": 34,
+            "type": "python/CommandInjection",
+            "severity": "error",
+            "description": "Unsanitized input from an HTTP parameter flows into os.system, where it is used as a shell command. This may result in a Command Injection vulnerability."
+          },
+          {
+            "file": "app.py",
+            "line": 45,
+            "type": "python/PT",
+            "severity": "error",
+            "description": "Unsanitized input from an HTTP parameter flows into open, where it is used as a path. This may result in a Path Traversal vulnerability and allow an attacker to read arbitrary files."
+          },
+          {
+            "file": "app.py",
+            "line": 24,
+            "type": "python/XSS",
+            "severity": "error",
+            "description": "Unsanitized input from an HTTP parameter flows into the return value of ping_host, where it is used to render an HTML page returned to the user. This may result in a Cross-Site Scripting attack (XSS)."
+          },
+          {
+            "file": "app.py",
+            "line": 35,
+            "type": "python/XSS",
+            "severity": "error",
+            "description": "Unsanitized input from an HTTP parameter flows into the return value of execute_command, where it is used to render an HTML page returned to the user. This may result in a Cross-Site Scripting attack (XSS)."
+          },
+          {
+            "file": "app.py",
+            "line": 47,
+            "type": "python/XSS",
+            "severity": "error",
+            "description": "Unsanitized input from an HTTP parameter flows into the return value of read_file, where it is used to render an HTML page returned to the user. This may result in a Cross-Site Scripting attack (XSS)."
+          }
+        ],
+        "detected_issues_count": 6,
+        "comparison_metrics": {
+          "precision": 0.16666666666666666,
+          "recall": 0.3333333333333333,
+          "f1_score": 0.2222222222222222,
+          "true_positives": 1,
+          "false_positives": 5,
+          "false_negatives": 2
+        }
+      },
+      "deepsource": {
+        "success": true,
+        "metrics": {
+          "critical": 0,
+          "high": 0,
+          "low": 0,
+          "medium": 0,
+          "scan_duration": 0.0,
+          "tool_name": "DeepSource",
+          "total_issues": 0
+        },
+        "advanced_metrics": {
+          "code_coverage": {
+            "code_coverage_percent": 0.0,
+            "files_analyzed": 0,
+            "lines_analyzed": 0
+          },
+          "code_quality_score": null,
+          "defect_detection_accuracy": {
+            "f1_score": 0.0,
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_negatives": 0,
+            "true_positives": 0
+          },
+          "false_positive_rate": 0.0,
+          "operational_efficiency": {
+            "average_scan_time": 0.0,
+            "cpu_usage_percent": 85.2,
+            "memory_usage_mb": 57.515625
+          }
+        },
+        "scan_duration": 2.176257610321045,
+        "detected_issues": [
+          {
+            "file": "app.py",
+            "line": 10,
+            "type": "DS-PY-001",
+            "severity": "HIGH",
+            "description": "Mock DeepSource issue - High severity"
+          },
+          {
+            "file": "app.py",
+            "line": 20,
+            "type": "DS-PY-002",
+            "severity": "MEDIUM",
+            "description": "Mock DeepSource issue - Medium severity"
+          }
+        ],
+        "detected_issues_count": 2,
+        "comparison_metrics": {
+          "precision": 0.5,
+          "recall": 0.3333333333333333,
+          "f1_score": 0.4,
+          "true_positives": 1,
+          "false_positives": 1,
+          "false_negatives": 2
+        }
+      }
+    },
+    "vulnerable_xss": {
+      "ground_truth_count": 3,
+      "snyk": {
+        "success": true,
+        "metrics": {
+          "critical": 0,
+          "high": 4,
+          "low": 0,
+          "medium": 0,
+          "scan_duration": 0.0,
+          "tool_name": "Snyk Code",
+          "total_issues": 4
+        },
+        "advanced_metrics": {
+          "code_coverage": {
+            "code_coverage_percent": 100.0,
+            "files_analyzed": 1,
+            "lines_analyzed": 0
+          },
+          "code_quality_score": null,
+          "defect_detection_accuracy": {
+            "f1_score": 0.0,
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_negatives": 0,
+            "true_positives": 0
+          },
+          "false_positive_rate": 0.0,
+          "operational_efficiency": {
+            "average_scan_time": 0.0,
+            "cpu_usage_percent": 0.0,
+            "memory_usage_mb": 56.75390625
+          }
+        },
+        "scan_duration": 11.272510051727295,
+        "detected_issues": [
+          {
+            "file": "app.py",
+            "line": 23,
+            "type": "python/Ssti",
+            "severity": "error",
+            "description": "Unsanitized input from an HTTP parameter flows into flask.render_template_string, where it is used to construct a template that gets rendered. This may result in a Server-Side Template Injection vulnerability."
+          },
+          {
+            "file": "app.py",
+            "line": 23,
+            "type": "python/XSS",
+            "severity": "error",
+            "description": "Unsanitized input from an HTTP parameter flows into flask.render_template_string, where it is used to render an HTML page returned to the user. This may result in a Cross-Site Scripting attack (XSS)."
+          },
+          {
+            "file": "app.py",
+            "line": 33,
+            "type": "python/XSS",
+            "severity": "error",
+            "description": "Unsanitized input from an HTTP parameter flows into the return value of search, where it is used to render an HTML page returned to the user. This may result in a Cross-Site Scripting attack (XSS)."
+          },
+          {
+            "file": "app.py",
+            "line": 43,
+            "type": "python/XSS",
+            "severity": "error",
+            "description": "Unsanitized input from an HTTP parameter flows into the return value of profile, where it is used to render an HTML page returned to the user. This may result in a Cross-Site Scripting attack (XSS)."
+          }
+        ],
+        "detected_issues_count": 4,
+        "comparison_metrics": {
+          "precision": 0.5,
+          "recall": 0.6666666666666666,
+          "f1_score": 0.5714285714285715,
+          "true_positives": 2,
+          "false_positives": 2,
+          "false_negatives": 1
+        }
+      },
+      "deepsource": {
+        "success": true,
+        "metrics": {
+          "critical": 0,
+          "high": 0,
+          "low": 0,
+          "medium": 0,
+          "scan_duration": 0.0,
+          "tool_name": "DeepSource",
+          "total_issues": 0
+        },
+        "advanced_metrics": {
+          "code_coverage": {
+            "code_coverage_percent": 0.0,
+            "files_analyzed": 0,
+            "lines_analyzed": 0
+          },
+          "code_quality_score": null,
+          "defect_detection_accuracy": {
+            "f1_score": 0.0,
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_negatives": 0,
+            "true_positives": 0
+          },
+          "false_positive_rate": 0.0,
+          "operational_efficiency": {
+            "average_scan_time": 0.0,
+            "cpu_usage_percent": 0.0,
+            "memory_usage_mb": 54.45703125
+          }
+        },
+        "scan_duration": 2.193563461303711,
+        "detected_issues": [
+          {
+            "file": "app.py",
+            "line": 10,
+            "type": "DS-PY-001",
+            "severity": "HIGH",
+            "description": "Mock DeepSource issue - High severity"
+          },
+          {
+            "file": "app.py",
+            "line": 20,
+            "type": "DS-PY-002",
+            "severity": "MEDIUM",
+            "description": "Mock DeepSource issue - Medium severity"
+          }
+        ],
+        "detected_issues_count": 2,
+        "comparison_metrics": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "true_positives": 0,
+          "false_positives": 2,
+          "false_negatives": 3
+        }
+      }
+    },
+    "vulnerable_hardcoded_creds": {
+      "ground_truth_count": 5,
+      "snyk": {
+        "success": true,
+        "metrics": {
+          "critical": 0,
+          "high": 1,
+          "low": 0,
+          "medium": 1,
+          "scan_duration": 0.0,
+          "tool_name": "Snyk Code",
+          "total_issues": 2
+        },
+        "advanced_metrics": {
+          "code_coverage": {
+            "code_coverage_percent": 100.0,
+            "files_analyzed": 1,
+            "lines_analyzed": 0
+          },
+          "code_quality_score": null,
+          "defect_detection_accuracy": {
+            "f1_score": 0.0,
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_negatives": 0,
+            "true_positives": 0
+          },
+          "false_positive_rate": 0.0,
+          "operational_efficiency": {
+            "average_scan_time": 0.0,
+            "cpu_usage_percent": 0.0,
+            "memory_usage_mb": 54.6953125
+          }
+        },
+        "scan_duration": 11.425886154174805,
+        "detected_issues": [
+          {
+            "file": "app.py",
+            "line": 13,
+            "type": "python/HardcodedNonCryptoSecret",
+            "severity": "error",
+            "description": "Avoid hardcoding values that are meant to be secret. Found a hardcoded string used in here."
+          },
+          {
+            "file": "app.py",
+            "line": 47,
+            "type": "python/RunWithDebugTrue",
+            "severity": "warning",
+            "description": "Running the application in debug mode (debug flag is set to True in run) is a security risk if the application is accessible by untrusted parties."
+          }
+        ],
+        "detected_issues_count": 2,
+        "comparison_metrics": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1_score": 0.0,
+          "true_positives": 0,
+          "false_positives": 2,
+          "false_negatives": 5
+        }
+      },
+      "deepsource": {
+        "success": true,
+        "metrics": {
+          "critical": 0,
+          "high": 0,
+          "low": 0,
+          "medium": 0,
+          "scan_duration": 0.0,
+          "tool_name": "DeepSource",
+          "total_issues": 0
+        },
+        "advanced_metrics": {
+          "code_coverage": {
+            "code_coverage_percent": 0.0,
+            "files_analyzed": 0,
+            "lines_analyzed": 0
+          },
+          "code_quality_score": null,
+          "defect_detection_accuracy": {
+            "f1_score": 0.0,
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_negatives": 0,
+            "true_positives": 0
+          },
+          "false_positive_rate": 0.0,
+          "operational_efficiency": {
+            "average_scan_time": 0.0,
+            "cpu_usage_percent": 0.0,
+            "memory_usage_mb": 54.47265625
+          }
+        },
+        "scan_duration": 2.1619882583618164,
+        "detected_issues": [
+          {
+            "file": "app.py",
+            "line": 10,
+            "type": "DS-PY-001",
+            "severity": "HIGH",
+            "description": "Mock DeepSource issue - High severity"
+          },
+          {
+            "file": "app.py",
+            "line": 20,
+            "type": "DS-PY-002",
+            "severity": "MEDIUM",
+            "description": "Mock DeepSource issue - Medium severity"
+          }
+        ],
+        "detected_issues_count": 2,
+        "comparison_metrics": {
+          "precision": 1.0,
+          "recall": 0.4,
+          "f1_score": 0.5714285714285715,
+          "true_positives": 2,
+          "false_positives": 0,
+          "false_negatives": 3
+        }
+      }
+    }
+  }
+}

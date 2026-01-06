@@ -1,0 +1,107 @@
+================================================================================
+KAPSAMLI TEST RAPORU - ÖZET
+================================================================================
+
+Rapor Tarihi: 2026-01-06T21:58:38.751936
+Test Edilen Projeler: 5
+Test Edilen Araçlar: Snyk Code, DeepSource
+
+================================================================================
+GENEL İSTATİSTİKLER
+================================================================================
+
+Snyk Code Başarı Oranı: 5/5 (100.0%)
+DeepSource Başarı Oranı: 5/5 (100.0%)
+
+================================================================================
+PERFORMANS METRİKLERİ
+================================================================================
+
+Snyk Code:
+  - Ortalama Süre: 10.15s
+  - En Hızlı: 9.87s
+  - En Yavaş: 10.98s
+
+DeepSource:
+  - Ortalama Süre: 2.96s
+  - En Hızlı: 2.88s
+  - En Yavaş: 3.02s
+
+DeepSource, Snyk Code'dan 0.1x daha hızlı
+
+================================================================================
+DOĞRULUK METRİKLERİ (Ground Truth Olan Projeler)
+================================================================================
+
+Proje: vulnerable_sql_injection
+  Ground Truth: 2 issue
+  Snyk Code:
+    - Precision: 25.00%
+    - Recall: 50.00%
+    - F1 Score: 33.33%
+    - TP: 1, FP: 3, FN: 1
+  DeepSource:
+    - Precision: 0.00%
+    - Recall: 0.00%
+    - F1 Score: 0.00%
+    - TP: 0, FP: 0, FN: 2
+
+Proje: vulnerable_command_injection
+  Ground Truth: 3 issue
+  Snyk Code:
+    - Precision: 16.67%
+    - Recall: 33.33%
+    - F1 Score: 22.22%
+    - TP: 1, FP: 5, FN: 2
+  DeepSource:
+    - Precision: 0.00%
+    - Recall: 0.00%
+    - F1 Score: 0.00%
+    - TP: 0, FP: 0, FN: 3
+
+Proje: vulnerable_xss
+  Ground Truth: 3 issue
+  Snyk Code:
+    - Precision: 50.00%
+    - Recall: 66.67%
+    - F1 Score: 57.14%
+    - TP: 2, FP: 2, FN: 1
+  DeepSource:
+    - Precision: 0.00%
+    - Recall: 0.00%
+    - F1 Score: 0.00%
+    - TP: 0, FP: 0, FN: 3
+
+Proje: vulnerable_hardcoded_creds
+  Ground Truth: 5 issue
+  Snyk Code:
+    - Precision: 0.00%
+    - Recall: 0.00%
+    - F1 Score: 0.00%
+    - TP: 0, FP: 2, FN: 5
+  DeepSource:
+    - Precision: 0.00%
+    - Recall: 0.00%
+    - F1 Score: 0.00%
+    - TP: 0, FP: 0, FN: 5
+
+================================================================================
+GENEL ÖZET - DOĞRULUK METRİKLERİ
+================================================================================
+
+Snyk Code:
+  - Ortalama Precision: 22.92%
+  - Ortalama Recall: 37.50%
+  - Ortalama F1 Score: 28.17%
+  - Toplam TP: 4, FP: 12, FN: 9
+
+DeepSource:
+  - Ortalama Precision: 0.00%
+  - Ortalama Recall: 0.00%
+  - Ortalama F1 Score: 0.00%
+  - Toplam TP: 0, FP: 0, FN: 13
+
+KARŞILAŞTIRMA:
+  Precision: Snyk Code daha iyi (22.92% vs 0.00%)
+  Recall: Snyk Code daha iyi (37.50% vs 0.00%)
+  F1 Score: Snyk Code daha iyi (28.17% vs 0.00%)

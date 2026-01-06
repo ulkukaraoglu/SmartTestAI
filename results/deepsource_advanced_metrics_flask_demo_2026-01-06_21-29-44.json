@@ -1,0 +1,38 @@
+{
+  "tool_name": "deepsource",
+  "project": "flask_demo",
+  "timestamp": "2026-01-06_21-29-44",
+  "basic_metrics": {
+    "tool_name": "DeepSource",
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0,
+    "total_issues": 0,
+    "scan_duration": 0.0
+  },
+  "advanced_metrics": {
+    "defect_detection_accuracy": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "true_positives": 0,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "true_negatives": 0
+    },
+    "code_coverage": {
+      "code_coverage_percent": 0.0,
+      "files_analyzed": 0,
+      "lines_analyzed": 0
+    },
+    "false_positive_rate": 0.0,
+    "operational_efficiency": {
+      "average_scan_time": 0.0,
+      "cpu_usage_percent": 116.4,
+      "memory_usage_mb": 55.5625
+    },
+    "code_quality_score": null
+  },
+  "ground_truth_count": 0
+}

@@ -1,0 +1,124 @@
+{
+  "timestamp": "2026-01-06T21:26:35.626238",
+  "projects": {
+    "flask_demo": {
+      "ground_truth_count": 0,
+      "snyk": {
+        "success": true,
+        "metrics": {
+          "critical": 0,
+          "high": 0,
+          "low": 0,
+          "medium": 0,
+          "scan_duration": 0.0,
+          "tool_name": "Snyk Code",
+          "total_issues": 0
+        },
+        "advanced_metrics": {
+          "code_coverage": {
+            "code_coverage_percent": 0.0,
+            "files_analyzed": 0,
+            "lines_analyzed": 7
+          },
+          "code_quality_score": null,
+          "defect_detection_accuracy": {
+            "f1_score": 0.0,
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_negatives": 0,
+            "true_positives": 0
+          },
+          "false_positive_rate": 0.0,
+          "operational_efficiency": {
+            "average_scan_time": 0.0,
+            "cpu_usage_percent": 116.4,
+            "memory_usage_mb": 34.12890625
+          }
+        },
+        "scan_duration": 10.522709131240845
+      },
+      "deepsource": {
+        "success": true,
+        "metrics": {
+          "critical": 0,
+          "high": 0,
+          "low": 0,
+          "medium": 1,
+          "scan_duration": 3.5,
+          "tool_name": "DeepSource",
+          "total_issues": 1
+        },
+        "advanced_metrics": {
+          "code_coverage": {
+            "code_coverage_percent": 100.0,
+            "files_analyzed": 1,
+            "lines_analyzed": 10
+          },
+          "code_quality_score": null,
+          "defect_detection_accuracy": {
+            "f1_score": 0.0,
+            "false_negatives": 0,
+            "false_positives": 0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "true_negatives": 0,
+            "true_positives": 0
+          },
+          "false_positive_rate": 0.0,
+          "operational_efficiency": {
+            "average_scan_time": 3.5,
+            "cpu_usage_percent": 116.4,
+            "memory_usage_mb": 34.546875
+          }
+        },
+        "scan_duration": 2.184429168701172
+      }
+    },
+    "vulnerable_sql_injection": {
+      "ground_truth_count": 2,
+      "snyk": {
+        "success": false,
+        "error": "HTTP 400: {\n  \"available_projects\": [\n    \"flask_demo\",\n    \"vulnerable_demo\"\n  ],\n  \"error\": \"Invalid project. Available projects: ['flask_demo', 'vulnerable_demo']\"\n}\n"
+      },
+      "deepsource": {
+        "success": false,
+        "error": "HTTP 400: {\n  \"available_projects\": [\n    \"flask_demo\",\n    \"vulnerable_demo\"\n  ],\n  \"error\": \"Invalid project. Available projects: ['flask_demo', 'vulnerable_demo']\"\n}\n"
+      }
+    },
+    "vulnerable_command_injection": {
+      "ground_truth_count": 3,
+      "snyk": {
+        "success": false,
+        "error": "HTTP 400: {\n  \"available_projects\": [\n    \"flask_demo\",\n    \"vulnerable_demo\"\n  ],\n  \"error\": \"Invalid project. Available projects: ['flask_demo', 'vulnerable_demo']\"\n}\n"
+      },
+      "deepsource": {
+        "success": false,
+        "error": "HTTP 400: {\n  \"available_projects\": [\n    \"flask_demo\",\n    \"vulnerable_demo\"\n  ],\n  \"error\": \"Invalid project. Available projects: ['flask_demo', 'vulnerable_demo']\"\n}\n"
+      }
+    },
+    "vulnerable_xss": {
+      "ground_truth_count": 3,
+      "snyk": {
+        "success": false,
+        "error": "HTTP 400: {\n  \"available_projects\": [\n    \"flask_demo\",\n    \"vulnerable_demo\"\n  ],\n  \"error\": \"Invalid project. Available projects: ['flask_demo', 'vulnerable_demo']\"\n}\n"
+      },
+      "deepsource": {
+        "success": false,
+        "error": "HTTP 400: {\n  \"available_projects\": [\n    \"flask_demo\",\n    \"vulnerable_demo\"\n  ],\n  \"error\": \"Invalid project. Available projects: ['flask_demo', 'vulnerable_demo']\"\n}\n"
+      }
+    },
+    "vulnerable_hardcoded_creds": {
+      "ground_truth_count": 5,
+      "snyk": {
+        "success": false,
+        "error": "HTTP 400: {\n  \"available_projects\": [\n    \"flask_demo\",\n    \"vulnerable_demo\"\n  ],\n  \"error\": \"Invalid project. Available projects: ['flask_demo', 'vulnerable_demo']\"\n}\n"
+      },
+      "deepsource": {
+        "success": false,
+        "error": "HTTP 400: {\n  \"available_projects\": [\n    \"flask_demo\",\n    \"vulnerable_demo\"\n  ],\n  \"error\": \"Invalid project. Available projects: ['flask_demo', 'vulnerable_demo']\"\n}\n"
+      }
+    }
+  }
+}

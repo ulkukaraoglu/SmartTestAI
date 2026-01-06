@@ -1,0 +1,19 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+
+# Snyk
+.snyk
+snyk-*.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+
+test_projects/*
+!test_projects/flask_demo/
