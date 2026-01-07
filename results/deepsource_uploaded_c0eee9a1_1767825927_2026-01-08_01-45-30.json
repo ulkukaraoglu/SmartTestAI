@@ -1,0 +1,172 @@
+{
+  "data": {
+    "repository": {
+      "name": "SmartTestAI",
+      "issues": {
+        "totalCount": 16,
+        "edges": [
+          {
+            "node": {
+              "issue": {
+                "shortcode": "PY-W2000",
+                "title": "Imported name is not used anywhere in the module",
+                "severity": "MAJOR",
+                "category": "ANTI_PATTERN"
+              }
+            }
+          },
+          {
+            "node": {
+              "issue": {
+                "shortcode": "PTC-W0027",
+                "title": "`f-string` used without any expression",
+                "severity": "MAJOR",
+                "category": "ANTI_PATTERN"
+              }
+            }
+          },
+          {
+            "node": {
+              "issue": {
+                "shortcode": "PTC-W0048",
+                "title": "`if` statements can be merged",
+                "severity": "MAJOR",
+                "category": "ANTI_PATTERN"
+              }
+            }
+          },
+          {
+            "node": {
+              "issue": {
+                "shortcode": "PYL-R0201",
+                "title": "Consider decorating method with `@staticmethod`",
+                "severity": "MAJOR",
+                "category": "PERFORMANCE"
+              }
+            }
+          },
+          {
+            "node": {
+              "issue": {
+                "shortcode": "PYL-W1510",
+                "title": "Subprocess run with ignored non-zero exit",
+                "severity": "MINOR",
+                "category": "BUG_RISK"
+              }
+            }
+          },
+          {
+            "node": {
+              "issue": {
+                "shortcode": "BAN-B104",
+                "title": "Audit: Binding to all interfaces detected with hardcoded values",
+                "severity": "MAJOR",
+                "category": "SECURITY"
+              }
+            }
+          },
+          {
+            "node": {
+              "issue": {
+                "shortcode": "PTC-W1003",
+                "title": "Audit required: Insecure hash function",
+                "severity": "MAJOR",
+                "category": "SECURITY"
+              }
+            }
+          },
+          {
+            "node": {
+              "issue": {
+                "shortcode": "PTC-W6004",
+                "title": "Audit required: External control of file name or path",
+                "severity": "MINOR",
+                "category": "SECURITY"
+              }
+            }
+          },
+          {
+            "node": {
+              "issue": {
+                "shortcode": "PY-R1000",
+                "title": "Function with cyclomatic complexity higher than threshold",
+                "severity": "MINOR",
+                "category": "ANTI_PATTERN"
+              }
+            }
+          },
+          {
+            "node": {
+              "issue": {
+                "shortcode": "PYL-W0105",
+                "title": "Unassigned string statement",
+                "severity": "MINOR",
+                "category": "ANTI_PATTERN"
+              }
+            }
+          },
+          {
+            "node": {
+              "issue": {
+                "shortcode": "PYL-W0612",
+                "title": "Unused variable found",
+                "severity": "MAJOR",
+                "category": "ANTI_PATTERN"
+              }
+            }
+          },
+          {
+            "node": {
+              "issue": {
+                "shortcode": "PYL-W0613",
+                "title": "Function contains unused argument",
+                "severity": "MAJOR",
+                "category": "ANTI_PATTERN"
+              }
+            }
+          },
+          {
+            "node": {
+              "issue": {
+                "shortcode": "BAN-B602",
+                "title": "Detected subprocess `popen` call with shell equals `True`",
+                "severity": "MAJOR",
+                "category": "SECURITY"
+              }
+            }
+          },
+          {
+            "node": {
+              "issue": {
+                "shortcode": "BAN-B605",
+                "title": "Starting a process with a shell detected",
+                "severity": "MAJOR",
+                "category": "SECURITY"
+              }
+            }
+          },
+          {
+            "node": {
+              "issue": {
+                "shortcode": "BAN-B608",
+                "title": "Audit required: Risk of possible SQL injection vector through string-based query construction",
+                "severity": "MAJOR",
+                "category": "SECURITY"
+              }
+            }
+          },
+          {
+            "node": {
+              "issue": {
+                "shortcode": "PYL-W0621",
+                "title": "Re-defined variable from outer scope",
+                "severity": "MAJOR",
+                "category": "ANTI_PATTERN"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

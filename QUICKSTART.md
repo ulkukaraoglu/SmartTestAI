@@ -128,7 +128,12 @@ npm install -g snyk
 snyk auth
 ```
 
-Snyk CLI yolunu `backend/metric_runner.py` dosyasında güncelleyin:
+**Organizasyon Bilgileri:**
+- Proje otomatik olarak **SmartTestAI-demo** organizasyonunu kullanır
+- Organization ID: `31b7aa9b-c8a6-443a-8858-4576d54abd64`
+- Bu bilgiler `backend/metric_runner.py` dosyasında tanımlıdır
+
+Snyk CLI yolunu `backend/metric_runner.py` dosyasında güncelleyin (gerekirse):
 ```python
 SNYK_PATH = r"C:\Users\YOUR_USERNAME\AppData\Roaming\npm\snyk.cmd"
 ```

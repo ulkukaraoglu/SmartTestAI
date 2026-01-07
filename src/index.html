@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartTestAI - Kod Analiz Aracı Karşılaştırma</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 SmartTestAI</h1>
+            <p class="subtitle">AI Kod Analiz Araçlarını Karşılaştır</p>
+        </header>
+
+        <main>
+            <!-- Dosya Yükleme Bölümü -->
+            <section class="upload-section">
+                <div class="upload-card">
+                    <h2>📁 Dosya Yükle</h2>
+                    <p>Analiz edilecek Python dosyasını yükleyin (veya bir ZIP arşivi)</p>
+                    
+                    <div class="upload-area" id="uploadArea">
+                        <input type="file" id="fileInput" accept=".py,.zip,.txt,.js,.java,.cpp,.c,.go,.rs" style="display: none;" multiple>
+                        <div class="upload-placeholder">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <p><strong>Dosyaları buraya sürükleyin</strong> veya tıklayın</p>
+                            <p class="file-info">Desteklenen formatlar: .py, .js, .java, .cpp, .c, .go, .rs, .txt, .zip</p>
+                        </div>
+                        <div class="upload-progress" id="uploadProgress" style="display: none;">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                            <p id="progressText">Yükleniyor...</p>
+                        </div>
+                    </div>
+
+                    <div class="file-list" id="fileList" style="display: none;">
+                        <h3>Yüklenen Dosyalar:</h3>
+                        <ul id="fileListItems"></ul>
+                    </div>
+
+                    <button class="btn btn-primary" id="scanButton" disabled>
+                        🔍 Taramayı Başlat
+                    </button>
+                </div>
+            </section>
+
+            <!-- Tarama Sonuçları Bölümü -->
+            <section class="results-section" id="resultsSection" style="display: none;">
+                <h2>📊 Tarama Sonuçları</h2>
+                
+                <!-- Loading State -->
+                <div class="loading-state" id="loadingState">
+                    <div class="spinner"></div>
+                    <p>Taranıyor... Bu işlem birkaç dakika sürebilir.</p>
+                    <div class="scan-progress">
+                        <div class="scan-step" id="step1">
+                            <span class="step-icon">⏳</span>
+                            <span>Dosya yükleniyor...</span>
+                        </div>
+                        <div class="scan-step" id="step2">
+                            <span class="step-icon">⏳</span>
+                            <span>Snyk Code taraması...</span>
+                        </div>
+                        <div class="scan-step" id="step3">
+                            <span class="step-icon">⏳</span>
+                            <span>DeepSource taraması...</span>
+                        </div>
+                        <div class="scan-step" id="step4">
+                            <span class="step-icon">⏳</span>
+                            <span>Sonuçlar hazırlanıyor...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results Container -->
+                <div class="results-container" id="resultsContainer" style="display: none;">
+                    <!-- Comparison Cards -->
+                    <div class="comparison-cards">
+                        <div class="comparison-card snyk-card">
+                            <div class="card-header">
+                                <h3>🛡️ Snyk Code</h3>
+                                <span class="status-badge" id="snykStatus">Başarılı</span>
+                            </div>
+                            <div class="metrics-grid">
+                                <div class="metric-item critical">
+                                    <span class="metric-label">Critical</span>
+                                    <span class="metric-value" id="snykCritical">0</span>
+                                </div>
+                                <div class="metric-item high">
+                                    <span class="metric-label">High</span>
+                                    <span class="metric-value" id="snykHigh">0</span>
+                                </div>
+                                <div class="metric-item medium">
+                                    <span class="metric-label">Medium</span>
+                                    <span class="metric-value" id="snykMedium">0</span>
+                                </div>
+                                <div class="metric-item low">
+                                    <span class="metric-label">Low</span>
+                                    <span class="metric-value" id="snykLow">0</span>
+                                </div>
+                            </div>
+                            <div class="metric-summary">
+                                <p><strong>Toplam Issues:</strong> <span id="snykTotal">0</span></p>
+                                <p><strong>Tarama Süresi:</strong> <span id="snykDuration">0.0s</span></p>
+                            </div>
+                            <button class="btn btn-secondary btn-sm" onclick="showDetails('snyk')">Detayları Göster</button>
+                        </div>
+
+                        <div class="comparison-card deepsource-card">
+                            <div class="card-header">
+                                <h3>🤖 DeepSource</h3>
+                                <span class="status-badge" id="deepsourceStatus">Başarılı</span>
+                            </div>
+                            <div class="metrics-grid">
+                                <div class="metric-item critical">
+                                    <span class="metric-label">Critical</span>
+                                    <span class="metric-value" id="deepsourceCritical">0</span>
+                                </div>
+                                <div class="metric-item high">
+                                    <span class="metric-label">High</span>
+                                    <span class="metric-value" id="deepsourceHigh">0</span>
+                                </div>
+                                <div class="metric-item medium">
+                                    <span class="metric-label">Medium</span>
+                                    <span class="metric-value" id="deepsourceMedium">0</span>
+                                </div>
+                                <div class="metric-item low">
+                                    <span class="metric-label">Low</span>
+                                    <span class="metric-value" id="deepsourceLow">0</span>
+                                </div>
+                            </div>
+                            <div class="metric-summary">
+                                <p><strong>Toplam Issues:</strong> <span id="deepsourceTotal">0</span></p>
+                                <p><strong>Tarama Süresi:</strong> <span id="deepsourceDuration">0.0s</span></p>
+                            </div>
+                            <button class="btn btn-secondary btn-sm" onclick="showDetails('deepsource')">Detayları Göster</button>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Metrics -->
+                    <div class="advanced-metrics-section">
+                        <h3>📈 Gelişmiş Metrikler</h3>
+                        <div class="metrics-comparison">
+                            <div class="metric-comparison-card">
+                                <h4>Precision (Doğruluk)</h4>
+                                <div class="progress-comparison">
+                                    <div class="progress-item">
+                                        <label>Snyk Code</label>
+                                        <div class="progress-bar-small">
+                                            <div class="progress-fill" id="snykPrecisionBar" style="width: 0%"></div>
+                                        </div>
+                                        <span id="snykPrecision">0%</span>
+                                    </div>
+                                    <div class="progress-item">
+                                        <label>DeepSource</label>
+                                        <div class="progress-bar-small">
+                                            <div class="progress-fill" id="deepsourcePrecisionBar" style="width: 0%"></div>
+                                        </div>
+                                        <span id="deepsourcePrecision">0%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="metric-comparison-card">
+                                <h4>Recall (Geri Çağırma)</h4>
+                                <div class="progress-comparison">
+                                    <div class="progress-item">
+                                        <label>Snyk Code</label>
+                                        <div class="progress-bar-small">
+                                            <div class="progress-fill" id="snykRecallBar" style="width: 0%"></div>
+                                        </div>
+                                        <span id="snykRecall">0%</span>
+                                    </div>
+                                    <div class="progress-item">
+                                        <label>DeepSource</label>
+                                        <div class="progress-bar-small">
+                                            <div class="progress-fill" id="deepsourceRecallBar" style="width: 0%"></div>
+                                        </div>
+                                        <span id="deepsourceRecall">0%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="metric-comparison-card">
+                                <h4>F1 Score</h4>
+                                <div class="progress-comparison">
+                                    <div class="progress-item">
+                                        <label>Snyk Code</label>
+                                        <div class="progress-bar-small">
+                                            <div class="progress-fill" id="snykF1Bar" style="width: 0%"></div>
+                                        </div>
+                                        <span id="snykF1">0%</span>
+                                    </div>
+                                    <div class="progress-item">
+                                        <label>DeepSource</label>
+                                        <div class="progress-bar-small">
+                                            <div class="progress-fill" id="deepsourceF1Bar" style="width: 0%"></div>
+                                        </div>
+                                        <span id="deepsourceF1">0%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Results Modal -->
+                    <div class="modal" id="detailsModal">
+                        <div class="modal-content">
+                            <span class="close" onclick="closeModal()">&times;</span>
+                            <h2 id="modalTitle">Detaylı Sonuçlar</h2>
+                            <div id="modalBody"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error State -->
+                <div class="error-state" id="errorState" style="display: none;">
+                    <div class="error-icon">❌</div>
+                    <h3>Hata Oluştu</h3>
+                    <p id="errorMessage"></p>
+                    <button class="btn btn-primary" onclick="resetScan()">Yeniden Dene</button>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>SmartTestAI - AI Kod Analiz Araçları Benchmark Sistemi</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+

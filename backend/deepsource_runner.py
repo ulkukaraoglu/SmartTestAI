@@ -405,8 +405,11 @@ def run_deepsource_scan_and_save(project_name: str) -> dict:
         }
     """
     try:
-        # Proje yolunu oluştur
+        # Proje yolunu oluştur (uploaded klasörü de kontrol et)
         target_path = f"../test_projects/{project_name}"
+        if not Path(target_path).exists():
+            # Uploaded klasöründe olabilir
+            target_path = f"../test_projects/uploaded/{project_name}"
         
         # Proje var mı kontrol et
         if not Path(target_path).exists():

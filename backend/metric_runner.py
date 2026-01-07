@@ -4,13 +4,17 @@ Snyk Code Runner Modülü
 Bu modül, Snyk Code CLI kullanarak kod analizi yapar ve sonuçları
 standart metrik formatına normalize eder.
 
+Snyk Organization:
+- Organization Name: SmartTestAI-demo
+- Organization ID: 31b7aa9b-c8a6-443a-8858-4576d54abd64
+
 Proje Yapısı İçindeki Yeri:
 - backend/metric_runner.py: Bu dosya
 - backend/metrics/snyk_metrics.py: Snyk metrik normalizasyonu
 - results/: Tarama sonuçları kaydedilir
 
 Ana Fonksiyonlar:
-- run_snyk_code_scan(): Snyk CLI ile tarama yapar
+- run_snyk_code_scan(): Snyk CLI ile tarama yapar (organizasyon bilgisi ile)
 - save_scan_result(): Sonuçları JSON formatında kaydeder
 - run_code_scan_and_save(): Tam tarama ve kaydetme işlemi
 
@@ -25,14 +29,78 @@ Kullanım:
 import json
 import subprocess
 import os
+import shutil
 from datetime import datetime
 from pathlib import Path
 from metrics.snyk_metrics import SnykMetrics
 from metrics.advanced_metrics import AdvancedMetricsCalculator
 
-# Snyk CLI yolu (Windows için)
-# Not: Bu yol sistemden sisteme değişebilir
-SNYK_PATH = r"C:\Users\zelih\AppData\Roaming\npm\snyk.cmd"
+# Snyk Organization Bilgileri
+SNYK_ORG_NAME = "SmartTestAI-demo"
+SNYK_ORG_ID = "31b7aa9b-c8a6-443a-8858-4576d54abd64"
+
+def find_snyk_cli():
+    """
+    Snyk CLI'nin yolunu otomatik olarak bulur.
+    Birden fazla yolu kontrol eder.
+    
+    Returns:
+        str: Snyk CLI'nin tam yolu veya None
+    """
+    # Windows için olası yollar
+    possible_paths = [
+        # npm global install yolu (kullanıcı bazlı)
+        os.path.expanduser(r"~\AppData\Roaming\npm\snyk.cmd"),
+        # npm global install yolu (system-wide)
+        r"C:\Program Files\nodejs\npm-global\node_modules\.bin\snyk.cmd",
+        # Node.js global bin
+        r"C:\Program Files\nodejs\snyk.cmd",
+        # PATH'de arıyoruz
+        shutil.which("snyk"),
+        shutil.which("snyk.cmd"),
+    ]
+    
+    # Kullanıcı adını alarak dinamik yol oluştur
+    username = os.getenv("USERNAME") or os.getenv("USER") or os.path.expanduser("~").split(os.sep)[-1]
+    if username:
+        user_path = rf"C:\Users\{username}\AppData\Roaming\npm\snyk.cmd"
+        if user_path not in possible_paths:
+            possible_paths.insert(0, user_path)
+    
+    # Her yolu kontrol et
+    for path in possible_paths:
+        if path and Path(path).exists():
+            return path
+    
+    # PATH'de "snyk" komutunu dene
+    try:
+        result = subprocess.run(["snyk", "--version"], 
+                              stdout=subprocess.PIPE, 
+                              stderr=subprocess.PIPE,
+                              timeout=5)
+        if result.returncode == 0:
+            return "snyk"
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+    
+    try:
+        result = subprocess.run(["snyk.cmd", "--version"], 
+                              stdout=subprocess.PIPE, 
+                              stderr=subprocess.PIPE,
+                              timeout=5)
+        if result.returncode == 0:
+            return "snyk.cmd"
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+    
+    return None
+
+# Snyk CLI yolunu otomatik bul
+SNYK_PATH = find_snyk_cli()
+
+if not SNYK_PATH:
+    print("WARNING: Snyk CLI bulunamadı. Lütfen Snyk CLI'yi kurun: npm install -g snyk")
+    print("Alternatif olarak backend/metric_runner.py dosyasında SNYK_PATH değerini manuel olarak ayarlayabilirsiniz.")
 
 # Sonuç dosyalarının kaydedileceği klasör
 RESULTS_DIR = "../results"
@@ -151,21 +219,78 @@ def run_snyk_code_scan(target_path: str) -> dict:
     Raises:
         RuntimeError: Snyk CLI hatası veya tarama başarısız olduğunda
     """
-    # Snyk CLI komutunu çalıştır
+    # Snyk CLI komutunu oluştur
     # --json flag'i ile JSON formatında çıktı al
-    result = subprocess.run(
-        [SNYK_PATH, "code", "test", target_path, "--json"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True
-    )
+    # --org parametresi ile organizasyon belirtilir
+    cmd = [
+        SNYK_PATH, 
+        "code", 
+        "test", 
+        target_path, 
+        "--json",
+        "--org", SNYK_ORG_ID  # Organization ID kullan
+    ]
+    
+    # Snyk CLI kontrolü
+    if not SNYK_PATH:
+        raise RuntimeError(
+            "Snyk CLI bulunamadı. Lütfen Snyk CLI'yi kurun:\n"
+            "  npm install -g snyk\n"
+            "ve ardından authenticate edin:\n"
+            "  snyk auth\n"
+            "Alternatif olarak backend/metric_runner.py dosyasında SNYK_PATH değerini manuel olarak ayarlayabilirsiniz."
+        )
+    
+    if SNYK_PATH and SNYK_PATH not in ["snyk", "snyk.cmd"] and not Path(SNYK_PATH).exists():
+        raise RuntimeError(
+            f"Snyk CLI dosyası bulunamadı: {SNYK_PATH}\n"
+            "Lütfen Snyk CLI'nin kurulu olduğundan ve yolun doğru olduğundan emin olun.\n"
+            "backend/metric_runner.py dosyasında SNYK_PATH değerini kontrol edin."
+        )
+    
+    try:
+        # Snyk CLI komutunu çalıştır
+        result = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=600  # 10 dakika timeout
+        )
+    except FileNotFoundError:
+        raise RuntimeError(
+            f"Snyk CLI bulunamadı. Yol: {SNYK_PATH}\n"
+            "Lütfen Snyk CLI'yi kurun: npm install -g snyk\n"
+            "ve ardından authenticate edin: snyk auth"
+        )
+    except subprocess.TimeoutExpired:
+        raise RuntimeError("Snyk taraması zaman aşımına uğradı (10 dakikadan fazla sürdü)")
+    except Exception as e:
+        raise RuntimeError(f"Snyk CLI çalıştırma hatası: {str(e)}")
 
     # Hata kontrolü
-    if result.returncode != 0 and not result.stdout:
-        raise RuntimeError(result.stderr)
+    if result.returncode != 0:
+        error_msg = result.stderr or "Unknown error"
+        # Eğer stdout'ta JSON varsa, onu kullanmayı dene (bazı durumlarda hata olsa bile sonuç döner)
+        if result.stdout:
+            try:
+                output = json.loads(result.stdout)
+                # Eğer valid JSON ise ve runs içeriyorsa, hataya rağmen döndür
+                if "runs" in output or "vulnerabilities" in output:
+                    return output
+            except json.JSONDecodeError:
+                pass
+        
+        raise RuntimeError(f"Snyk CLI hatası (return code: {result.returncode}): {error_msg}")
 
     # JSON çıktısını parse et
-    return json.loads(result.stdout)
+    if not result.stdout or not result.stdout.strip():
+        raise RuntimeError("Snyk CLI hiçbir çıktı döndürmedi")
+
+    try:
+        return json.loads(result.stdout)
+    except json.JSONDecodeError as e:
+        raise RuntimeError(f"Snyk çıktısı JSON formatında değil: {str(e)}\nÇıktı: {result.stdout[:500]}")
 
 def save_scan_result(raw_output: dict, tool_name: str, project_name: str) -> str:
     """
@@ -213,8 +338,11 @@ def run_code_scan_and_save(project_name: str) -> dict:
         }
     """
     try:
-        # Proje yolunu oluştur
+        # Proje yolunu oluştur (uploaded klasörü de kontrol et)
         target_path = f"../test_projects/{project_name}"
+        if not Path(target_path).exists():
+            # Uploaded klasöründe olabilir
+            target_path = f"../test_projects/uploaded/{project_name}"
         
         # Proje var mı kontrol et
         if not Path(target_path).exists():

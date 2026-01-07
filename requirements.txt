@@ -11,4 +11,7 @@ fastapi
 uvicorn
 pytest
 black
+flask
+flask-cors
+psutil
 

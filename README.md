@@ -194,9 +194,13 @@ npm install -g snyk
 # Authentication
 snyk auth
 
-# Organization ayarı (gerekirse)
-snyk config set org=<organization-id>
+# Organization ayarı
+# Proje otomatik olarak şu organizasyonu kullanır:
+# - Organization: SmartTestAI-demo
+# - Organization ID: 31b7aa9b-c8a6-443a-8858-4576d54abd64
 ```
+
+**Not:** Organizasyon bilgileri `backend/metric_runner.py` dosyasında tanımlıdır ve tüm taramalarda otomatik kullanılır.
 
 ### DeepSource
 
