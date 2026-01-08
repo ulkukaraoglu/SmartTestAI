@@ -35,6 +35,32 @@ from pathlib import Path
 from metrics.snyk_metrics import SnykMetrics
 from metrics.advanced_metrics import AdvancedMetricsCalculator
 
+# Ground truth dosyasının yolu
+GROUND_TRUTH_FILE = "../test_projects/ground_truth.json"
+
+def load_ground_truth(project_name: str) -> list:
+    """
+    Ground truth verilerini yükler
+    
+    Args:
+        project_name: Proje adı
+    
+    Returns:
+        list: Ground truth issue'ları listesi (proje için varsa)
+    """
+    try:
+        if not Path(GROUND_TRUTH_FILE).exists():
+            return []
+        
+        with open(GROUND_TRUTH_FILE, "r", encoding="utf-8") as f:
+            ground_truth_data = json.load(f)
+        
+        # Proje adına göre ground truth verilerini döndür
+        return ground_truth_data.get(project_name, [])
+    except Exception as e:
+        print(f"WARNING: Ground truth yüklenemedi: {e}")
+        return []
+
 # Snyk Organization Bilgileri
 SNYK_ORG_NAME = "SmartTestAI-demo"
 SNYK_ORG_ID = "31b7aa9b-c8a6-443a-8858-4576d54abd64"
@@ -337,6 +363,7 @@ def run_code_scan_and_save(project_name: str) -> dict:
             "error": str (varsa)
         }
     """
+    import time
     try:
         # Proje yolunu oluştur (uploaded klasörü de kontrol et)
         target_path = f"../test_projects/{project_name}"
@@ -352,8 +379,14 @@ def run_code_scan_and_save(project_name: str) -> dict:
                 "error": f"Project '{project_name}' not found in test_projects/"
             }
         
+        # Tarama süresini ölç (gerçek süre)
+        scan_start_time = time.time()
+        
         # Tarama yap
         raw_output = run_snyk_code_scan(target_path)
+        
+        # Gerçek tarama süresini hesapla
+        actual_scan_duration = time.time() - scan_start_time
         
         # Sonucu kaydet
         saved_path = save_scan_result(raw_output, "snyk_code", project_name)
@@ -362,16 +395,27 @@ def run_code_scan_and_save(project_name: str) -> dict:
         metric = SnykMetrics()
         metric_result = metric.calculate(raw_output)
         
+        # Gerçek tarama süresini metric_result'a ekle (eğer 0 ise)
+        if metric_result.scan_duration == 0.0:
+            metric_result.scan_duration = actual_scan_duration
+        
         # Issue'ları çıkar (advanced metrics için)
         detected_issues = extract_issues_from_snyk_result(raw_output)
         
-        # Gelişmiş metrikleri hesapla
+        # Ground truth verilerini yükle
+        ground_truth = load_ground_truth(project_name)
+        if ground_truth:
+            print(f"Ground truth yüklendi: {len(ground_truth)} issue bulundu")
+        else:
+            print(f"Ground truth bulunamadı veya boş: {project_name}")
+        
+        # Gelişmiş metrikleri hesapla (gerçek tarama süresi ile)
         calculator = AdvancedMetricsCalculator()
         advanced_result = calculator.calculate_all_advanced_metrics(
             raw_data=raw_output,
             detected_issues=detected_issues,
-            ground_truth=None,  # Ground truth opsiyonel
-            scan_duration=metric_result.scan_duration
+            ground_truth=ground_truth,  # Ground truth verilerini kullan
+            scan_duration=metric_result.scan_duration  # Gerçek süre kullanılıyor
         )
         
         # Advanced metrics sonucunu kaydet
@@ -380,7 +424,7 @@ def run_code_scan_and_save(project_name: str) -> dict:
             project_name,
             metric_result,
             advanced_result,
-            ground_truth=None
+            ground_truth=ground_truth
         )
         
         # MetricResult'ı dict'e çevir
