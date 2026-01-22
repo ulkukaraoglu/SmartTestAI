@@ -409,24 +409,6 @@ def run_code_scan_and_save(project_name: str) -> dict:
         else:
             print(f"Ground truth bulunamadı veya boş: {project_name}")
         
-        # Gelişmiş metrikleri hesapla (gerçek tarama süresi ile)
-        calculator = AdvancedMetricsCalculator()
-        advanced_result = calculator.calculate_all_advanced_metrics(
-            raw_data=raw_output,
-            detected_issues=detected_issues,
-            ground_truth=ground_truth,  # Ground truth verilerini kullan
-            scan_duration=metric_result.scan_duration  # Gerçek süre kullanılıyor
-        )
-        
-        # Advanced metrics sonucunu kaydet
-        advanced_file_path = save_advanced_metrics_result(
-            "snyk_code",
-            project_name,
-            metric_result,
-            advanced_result,
-            ground_truth=ground_truth
-        )
-        
         # MetricResult'ı dict'e çevir
         metric_dict = {
             "tool_name": metric_result.tool_name,
@@ -438,30 +420,57 @@ def run_code_scan_and_save(project_name: str) -> dict:
             "scan_duration": metric_result.scan_duration
         }
         
-        # Advanced metrics'i dict'e çevir
-        advanced_metrics_dict = {
-            "defect_detection_accuracy": {
-                "precision": advanced_result.precision,
-                "recall": advanced_result.recall,
-                "f1_score": advanced_result.f1_score,
-                "true_positives": advanced_result.true_positives,
-                "false_positives": advanced_result.false_positives,
-                "false_negatives": advanced_result.false_negatives,
-                "true_negatives": advanced_result.true_negatives
-            },
-            "code_coverage": {
-                "code_coverage_percent": advanced_result.code_coverage,
-                "files_analyzed": advanced_result.files_analyzed,
-                "lines_analyzed": advanced_result.lines_analyzed
-            },
-            "false_positive_rate": advanced_result.false_positive_rate,
-            "operational_efficiency": {
-                "average_scan_time": advanced_result.average_scan_time,
-                "cpu_usage_percent": advanced_result.cpu_usage_percent,
-                "memory_usage_mb": advanced_result.memory_usage_mb
-            },
-            "code_quality_score": advanced_result.code_quality_score
-        }
+        # Gelişmiş metrikleri hesapla (hata olursa boş dict döndür)
+        advanced_metrics_dict = {}
+        advanced_file_path = None
+        try:
+            calculator = AdvancedMetricsCalculator()
+            advanced_result = calculator.calculate_all_advanced_metrics(
+                raw_data=raw_output,
+                detected_issues=detected_issues,
+                ground_truth=ground_truth,  # Ground truth verilerini kullan
+                scan_duration=metric_result.scan_duration  # Gerçek süre kullanılıyor
+            )
+            
+            # Advanced metrics sonucunu kaydet
+            advanced_file_path = save_advanced_metrics_result(
+                "snyk_code",
+                project_name,
+                metric_result,
+                advanced_result,
+                ground_truth=ground_truth
+            )
+            
+            # Advanced metrics'i dict'e çevir
+            advanced_metrics_dict = {
+                "defect_detection_accuracy": {
+                    "precision": advanced_result.precision,
+                    "recall": advanced_result.recall,
+                    "f1_score": advanced_result.f1_score,
+                    "true_positives": advanced_result.true_positives,
+                    "false_positives": advanced_result.false_positives,
+                    "false_negatives": advanced_result.false_negatives,
+                    "true_negatives": advanced_result.true_negatives
+                },
+                "code_coverage": {
+                    "code_coverage_percent": advanced_result.code_coverage,
+                    "files_analyzed": advanced_result.files_analyzed,
+                    "lines_analyzed": advanced_result.lines_analyzed
+                },
+                "false_positive_rate": advanced_result.false_positive_rate,
+                "operational_efficiency": {
+                    "average_scan_time": advanced_result.average_scan_time,
+                    "cpu_usage_percent": advanced_result.cpu_usage_percent,
+                    "memory_usage_mb": advanced_result.memory_usage_mb
+                },
+                "code_quality_score": advanced_result.code_quality_score
+            }
+        except Exception as e:
+            print(f"WARNING: Advanced metrics hesaplanamadı: {e}")
+            import traceback
+            traceback.print_exc()
+            # Boş dict döndür, temel metrikler başarılı olsa bile
+            advanced_metrics_dict = {}
         
         return {
             "success": True,

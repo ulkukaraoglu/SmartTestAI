@@ -51,7 +51,8 @@ AVAILABLE_PROJECTS = [
     "vulnerable_sql_injection",
     "vulnerable_command_injection",
     "vulnerable_xss",
-    "vulnerable_hardcoded_creds"
+    "vulnerable_hardcoded_creds",
+    "vulnerable_comprehensive"
 ]
 
 # Yüklenen dosyalar için geçici proje klasörü

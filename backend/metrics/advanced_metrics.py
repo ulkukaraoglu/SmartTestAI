@@ -147,6 +147,7 @@ class AdvancedMetricsCalculator:
             "true_positives": true_positives,
             "false_positives": false_positives,
             "false_negatives": false_negatives,
+            "true_negatives": true_negatives,
             "false_positive_rate": false_positive_rate
         }
     
@@ -173,6 +174,7 @@ class AdvancedMetricsCalculator:
     def calculate_code_coverage(
         self,
         raw_data: Dict,
+        detected_issues: List[Dict] = None,
         total_lines: Optional[int] = None,
         total_files: Optional[int] = None
     ) -> Dict[str, float]:
@@ -181,6 +183,7 @@ class AdvancedMetricsCalculator:
         
         Args:
             raw_data: Araçtan gelen ham veri
+            detected_issues: Bulunan issue'lar (dosya bilgisi çıkarmak için)
             total_lines: Toplam kod satırı sayısı (opsiyonel)
             total_files: Toplam dosya sayısı (opsiyonel)
         
@@ -191,50 +194,86 @@ class AdvancedMetricsCalculator:
                 "lines_analyzed": int
             }
         """
-        # Snyk SARIF formatından coverage bilgisi
+        files_analyzed = set()
+        lines_analyzed = 0
+        
+        # Snyk SARIF formatından dosya bilgilerini çıkar
         if "runs" in raw_data and len(raw_data.get("runs", [])) > 0:
             run = raw_data["runs"][0]
-            properties = run.get("properties", {})
-            coverage = properties.get("coverage", [])
             
-            if coverage:
-                total_files_analyzed = sum(c.get("files", 0) for c in coverage)
-                # Coverage bilgisi varsa kullan
-                if total_files and total_files > 0:
-                    code_coverage = (total_files_analyzed / total_files) * 100
-                else:
-                    code_coverage = 100.0 if total_files_analyzed > 0 else 0.0
-                
-                return {
-                    "code_coverage": code_coverage,
-                    "files_analyzed": total_files_analyzed,
-                    "lines_analyzed": 0  # Snyk'te satır sayısı genelde yok
-                }
+            # Artifacts (dosyalar) bilgisini al
+            artifacts = run.get("artifacts", [])
+            if artifacts:
+                for artifact in artifacts:
+                    location = artifact.get("location", {})
+                    uri = location.get("uri", "")
+                    if uri:
+                        files_analyzed.add(uri)
+            
+            # Results (issue'lar) içinden dosya bilgilerini çıkar
+            results = run.get("results", [])
+            for result in results:
+                locations = result.get("locations", [])
+                for location in locations:
+                    physical_location = location.get("physicalLocation", {})
+                    artifact_location = physical_location.get("artifactLocation", {})
+                    uri = artifact_location.get("uri", "")
+                    if uri:
+                        files_analyzed.add(uri)
+                    
+                    # Satır bilgisi
+                    region = physical_location.get("region", {})
+                    start_line = region.get("startLine", 0)
+                    if start_line > 0:
+                        lines_analyzed = max(lines_analyzed, start_line)
         
         # DeepSource GraphQL formatından
-        if "data" in raw_data and "repository" in raw_data["data"]:
+        elif "data" in raw_data and "repository" in raw_data["data"]:
             repo_data = raw_data["data"]["repository"]
             issues = repo_data.get("issues", {})
-            total_count = issues.get("totalCount", 0)
+            edges = issues.get("edges", [])
             
-            # DeepSource'te coverage bilgisi yok, issue sayısına göre tahmin
-            # Gerçek coverage için repository bilgisi gerekli
-            return {
-                "code_coverage": 0.0,  # DeepSource API'sinde coverage bilgisi yok
-                "files_analyzed": 0,
-                "lines_analyzed": 0
-            }
+            # Issue'lardan dosya bilgisi çıkar (eğer varsa)
+            for edge in edges:
+                node = edge.get("node", {})
+                issue = node.get("issue", {})
+                # DeepSource API'sinde dosya bilgisi genelde yok
+                pass
         
-        # Varsayılan
+        # detected_issues listesinden dosya bilgilerini çıkar
+        if detected_issues:
+            for issue in detected_issues:
+                file_path = issue.get("file", "")
+                if file_path:
+                    files_analyzed.add(file_path)
+                
+                line = issue.get("line", 0)
+                if line > 0:
+                    lines_analyzed = max(lines_analyzed, line)
+        
+        files_count = len(files_analyzed)
+        
+        # Code coverage hesapla
+        if total_files and total_files > 0:
+            code_coverage = (files_count / total_files) * 100
+        elif files_count > 0:
+            # Total files bilgisi yoksa, en azından analiz edilen dosyaları göster
+            code_coverage = 100.0  # Analiz edilen dosyalar için %100
+        else:
+            code_coverage = 0.0
+        
         return {
-            "code_coverage": 0.0,
-            "files_analyzed": 0,
-            "lines_analyzed": 0
+            "code_coverage": code_coverage,
+            "files_analyzed": files_count,
+            "lines_analyzed": lines_analyzed
         }
     
-    def calculate_operational_efficiency(self) -> Dict[str, float]:
+    def calculate_operational_efficiency(self, scan_duration: float = 0.0) -> Dict[str, float]:
         """
         Operasyonel Verimlilik metriklerini hesaplar
+        
+        Args:
+            scan_duration: Mevcut tarama süresi (eğer scan_times boşsa kullanılır)
         
         Returns:
             {
@@ -244,12 +283,23 @@ class AdvancedMetricsCalculator:
             }
         """
         # Ortalama tarama süresi
-        average_scan_time = sum(self.scan_times) / len(self.scan_times) if self.scan_times else 0.0
+        if self.scan_times:
+            average_scan_time = sum(self.scan_times) / len(self.scan_times)
+        else:
+            # İlk taramada scan_times boşsa, mevcut scan_duration'ı kullan
+            average_scan_time = scan_duration if scan_duration > 0 else 0.0
         
         # CPU ve Memory kullanımı
-        cpu_usage = self.process.cpu_percent(interval=0.1)
-        memory_info = self.process.memory_info()
-        memory_usage_mb = memory_info.rss / (1024 * 1024)  # Bytes to MB
+        try:
+            cpu_usage = self.process.cpu_percent(interval=0.1)
+        except:
+            cpu_usage = 0.0
+        
+        try:
+            memory_info = self.process.memory_info()
+            memory_usage_mb = memory_info.rss / (1024 * 1024)  # Bytes to MB
+        except:
+            memory_usage_mb = 0.0
         
         return {
             "average_scan_time": average_scan_time,
@@ -300,18 +350,19 @@ class AdvancedMetricsCalculator:
                 "recall": 0.0,
                 "f1_score": 0.0,
                 "true_positives": 0,
-                "false_positives": 0,
+                "false_positives": len(detected_issues) if detected_issues else 0,
                 "false_negatives": 0,
-                "false_positive_rate": 0.0
+                "true_negatives": 0,
+                "false_positive_rate": 1.0 if detected_issues else 0.0
             }
         
-        # Kod Kapsama
+        # Kod Kapsama (detected_issues parametresini de geçir)
         coverage_metrics = self.calculate_code_coverage(
-            raw_data, total_lines, total_files
+            raw_data, detected_issues=detected_issues, total_lines=total_lines, total_files=total_files
         )
         
-        # Operasyonel Verimlilik
-        efficiency_metrics = self.calculate_operational_efficiency()
+        # Operasyonel Verimlilik (scan_duration parametresini geçir)
+        efficiency_metrics = self.calculate_operational_efficiency(scan_duration=scan_duration)
         
         return AdvancedMetricResult(
             precision=accuracy_metrics["precision"],

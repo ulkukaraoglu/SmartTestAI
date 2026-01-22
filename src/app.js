@@ -266,14 +266,15 @@ function displayResults() {
     } else {
         displayError('deepsource', scanResults.deepsource?.error || 'DeepSource taraması başarısız');
     }
-
-    // Display advanced metrics
-    displayAdvancedMetrics();
 }
 
 function displaySnykResults(result) {
     const metrics = result.metrics || {};
     const advanced = result.advanced_metrics || {};
+
+    // Debug: Console'a yazdır
+    console.log('Snyk Result:', result);
+    console.log('Snyk Advanced Metrics:', advanced);
 
     document.getElementById('snykStatus').textContent = 'Başarılı';
     document.getElementById('snykStatus').className = 'status-badge success';
@@ -295,6 +296,10 @@ function displaySnykResults(result) {
 function displayDeepSourceResults(result) {
     const metrics = result.metrics || {};
     const advanced = result.advanced_metrics || {};
+
+    // Debug: Console'a yazdır
+    console.log('DeepSource Result:', result);
+    console.log('DeepSource Advanced Metrics:', advanced);
 
     document.getElementById('deepsourceStatus').textContent = 'Başarılı';
     document.getElementById('deepsourceStatus').className = 'status-badge success';
@@ -340,52 +345,6 @@ function displayError(tool, errorMessage) {
     }
 }
 
-function displayAdvancedMetrics() {
-    // Snyk advanced metrics
-    const snykAdvanced = scanResults.snyk?.advanced_metrics || {};
-    const snykAccuracy = snykAdvanced.defect_detection_accuracy || {};
-    
-    if (snykAccuracy.precision !== undefined) {
-        const precision = (snykAccuracy.precision * 100).toFixed(1);
-        document.getElementById('snykPrecision').textContent = `${precision}%`;
-        document.getElementById('snykPrecisionBar').style.width = `${precision}%`;
-    }
-    
-    if (snykAccuracy.recall !== undefined) {
-        const recall = (snykAccuracy.recall * 100).toFixed(1);
-        document.getElementById('snykRecall').textContent = `${recall}%`;
-        document.getElementById('snykRecallBar').style.width = `${recall}%`;
-    }
-    
-    if (snykAccuracy.f1_score !== undefined) {
-        const f1 = (snykAccuracy.f1_score * 100).toFixed(1);
-        document.getElementById('snykF1').textContent = `${f1}%`;
-        document.getElementById('snykF1Bar').style.width = `${f1}%`;
-    }
-
-    // DeepSource advanced metrics
-    const deepsourceAdvanced = scanResults.deepsource?.advanced_metrics || {};
-    const deepsourceAccuracy = deepsourceAdvanced.defect_detection_accuracy || {};
-    
-    if (deepsourceAccuracy.precision !== undefined) {
-        const precision = (deepsourceAccuracy.precision * 100).toFixed(1);
-        document.getElementById('deepsourcePrecision').textContent = `${precision}%`;
-        document.getElementById('deepsourcePrecisionBar').style.width = `${precision}%`;
-    }
-    
-    if (deepsourceAccuracy.recall !== undefined) {
-        const recall = (deepsourceAccuracy.recall * 100).toFixed(1);
-        document.getElementById('deepsourceRecall').textContent = `${recall}%`;
-        document.getElementById('deepsourceRecallBar').style.width = `${recall}%`;
-    }
-    
-    if (deepsourceAccuracy.f1_score !== undefined) {
-        const f1 = (deepsourceAccuracy.f1_score * 100).toFixed(1);
-        document.getElementById('deepsourceF1').textContent = `${f1}%`;
-        document.getElementById('deepsourceF1Bar').style.width = `${f1}%`;
-    }
-}
-
 function showDetails(tool) {
     const modal = document.getElementById('detailsModal');
     const modalTitle = document.getElementById('modalTitle');
@@ -397,6 +356,10 @@ function showDetails(tool) {
         alert('Detaylı bilgi bulunamadı!');
         return;
     }
+
+    // Debug: Console'a yazdır
+    console.log(`${tool} Details:`, details);
+    console.log(`${tool} Advanced:`, details.advanced);
 
     modalTitle.textContent = `${tool === 'snyk' ? 'Snyk Code' : 'DeepSource'} - Detaylı Sonuçlar`;
     
@@ -415,10 +378,14 @@ function showDetails(tool) {
     html += '</table>';
     
     // Advanced Metrics
-    if (details.advanced) {
+    if (details.advanced && Object.keys(details.advanced).length > 0) {
         html += '<h3 style="margin-top: 30px;">Gelişmiş Metrikler</h3>';
         
         const accuracy = details.advanced.defect_detection_accuracy || {};
+        const falsePositiveRate = details.advanced.false_positive_rate !== undefined 
+            ? details.advanced.false_positive_rate 
+            : (accuracy.false_positive_rate || 0);
+        
         html += '<h4>Hata Tespit Başarısı</h4>';
         html += '<table class="issue-table">';
         html += '<tr><th>Metrik</th><th>Değer</th></tr>';
@@ -428,6 +395,7 @@ function showDetails(tool) {
         html += `<tr><td>True Positives</td><td>${accuracy.true_positives || 0}</td></tr>`;
         html += `<tr><td>False Positives</td><td>${accuracy.false_positives || 0}</td></tr>`;
         html += `<tr><td>False Negatives</td><td>${accuracy.false_negatives || 0}</td></tr>`;
+        html += `<tr><td>False Positive Rate</td><td>${(falsePositiveRate * 100).toFixed(2)}%</td></tr>`;
         html += '</table>';
         
         const coverage = details.advanced.code_coverage || {};
@@ -445,8 +413,22 @@ function showDetails(tool) {
         html += '<tr><th>Metrik</th><th>Değer</th></tr>';
         html += `<tr><td>Average Scan Time</td><td>${(efficiency.average_scan_time || 0).toFixed(2)}s</td></tr>`;
         html += `<tr><td>CPU Usage</td><td>${(efficiency.cpu_usage_percent || 0).toFixed(2)}%</td></tr>`;
-        html += `<tr><td>Memory Usage</td><td>${(efficiency.memory_usage_mb || 0).toFixed(2)} MB</td></tr>`;
+        html += `<tr><td>Memory Usage</td><td>${(efficiency.memory_usage_mb !== undefined ? efficiency.memory_usage_mb : 0).toFixed(2)} MB</td></tr>`;
         html += '</table>';
+        
+        // Code Quality Score (eğer varsa)
+        if (details.advanced.code_quality_score !== null && details.advanced.code_quality_score !== undefined) {
+            html += '<h4 style="margin-top: 20px;">Kod Kalitesi</h4>';
+            html += '<table class="issue-table">';
+            html += '<tr><th>Metrik</th><th>Değer</th></tr>';
+            html += `<tr><td>Code Quality Score</td><td>${details.advanced.code_quality_score.toFixed(2)}</td></tr>`;
+            html += '</table>';
+        }
+    } else {
+        html += '<div style="margin-top: 30px; padding: 20px; background-color: #f0f0f0; border-radius: 8px;">';
+        html += '<p style="color: #666; margin: 0;">Gelişmiş metrikler henüz hesaplanmadı veya mevcut değil.</p>';
+        html += '<p style="color: #666; margin: 10px 0 0 0; font-size: 0.9em;">Ground truth verisi olmadan precision, recall ve F1 score hesaplanamaz.</p>';
+        html += '</div>';
     }
     
     html += '</div>';

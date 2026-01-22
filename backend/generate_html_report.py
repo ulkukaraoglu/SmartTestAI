@@ -2,6 +2,7 @@
 HTML Rapor Oluşturucu
 
 JSON raporunu HTML formatına dönüştürür.
+Modern koyu tema ile uyumlu tasarım.
 """
 
 import json
@@ -22,98 +23,410 @@ def generate_html_report(json_file: Path):
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kapsamlı Test Raporu</title>
+    <title>Kapsamlı Test Raporu - SmartTestAI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body {{
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        :root {{
+            /* Dark Theme Colors */
+            --bg-primary: #0a0e27;
+            --bg-secondary: #141b2d;
+            --bg-tertiary: #1a2332;
+            --bg-card: #1e2838;
+            --bg-hover: #252f42;
+            
+            /* Accent Colors */
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+            
+            /* Text Colors */
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            
+            /* Status Colors */
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            
+            /* Shadows */
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+        }}
+        
+        * {{
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }}
+        
+        body {{
+            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+            min-height: 100vh;
+            color: var(--text-primary);
+            line-height: 1.6;
             padding: 20px;
-            background-color: #f5f5f5;
         }}
+        
         .container {{
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            backdrop-filter: blur(10px);
         }}
+        
         h1 {{
-            color: #2c3e50;
-            border-bottom: 3px solid #3498db;
-            padding-bottom: 10px;
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(99, 102, 241, 0.5);
+            border-bottom: 3px solid var(--accent-primary);
+            padding-bottom: 15px;
+            position: relative;
         }}
+        
+        h1::after {{
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 100px;
+            height: 3px;
+            background: var(--accent-gradient);
+        }}
+        
         h2 {{
-            color: #34495e;
-            margin-top: 30px;
-            border-left: 4px solid #3498db;
-            padding-left: 15px;
+            color: var(--text-primary);
+            margin-top: 40px;
+            margin-bottom: 25px;
+            font-size: 2rem;
+            font-weight: 700;
+            border-left: 4px solid var(--accent-primary);
+            padding-left: 20px;
+            position: relative;
         }}
+        
+        h2::before {{
+            content: '';
+            position: absolute;
+            left: -4px;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--accent-gradient);
+        }}
+        
+        h3 {{
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 15px;
+        }}
+        
+        p {{
+            color: var(--text-secondary);
+            margin: 10px 0;
+        }}
+        
+        strong {{
+            color: var(--text-primary);
+            font-weight: 600;
+        }}
+        
         .summary {{
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin: 20px 0;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
         }}
+        
         .card {{
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            background: var(--bg-card);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: var(--shadow-md);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
         }}
+        
+        .card::before {{
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-gradient);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }}
+        
+        .card:hover {{
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-glow);
+            border-color: var(--accent-primary);
+        }}
+        
+        .card:hover::before {{
+            opacity: 1;
+        }}
+        
         .card h3 {{
-            margin: 0 0 10px 0;
-            font-size: 14px;
-            opacity: 0.9;
+            margin: 0 0 15px 0;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
         }}
+        
         .card .value {{
-            font-size: 32px;
-            font-weight: bold;
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+            text-shadow: 0 0 10px currentColor;
         }}
+        
+        .card div:last-child {{
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }}
+        
         table {{
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
+            margin: 30px 0;
+            background: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(99, 102, 241, 0.1);
         }}
+        
         th, td {{
-            padding: 12px;
+            padding: 15px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
         }}
+        
         th {{
-            background-color: #3498db;
-            color: white;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
         }}
+        
+        td {{
+            color: var(--text-secondary);
+        }}
+        
         tr:hover {{
-            background-color: #f5f5f5;
+            background: var(--bg-hover);
         }}
+        
+        tr:last-child td {{
+            border-bottom: none;
+        }}
+        
         .metric {{
             display: inline-block;
-            padding: 5px 10px;
-            border-radius: 5px;
-            margin: 5px;
-            font-weight: bold;
+            padding: 6px 14px;
+            border-radius: 8px;
+            margin: 3px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: 1px solid;
         }}
-        .precision {{ background-color: #e8f5e9; color: #2e7d32; }}
-        .recall {{ background-color: #e3f2fd; color: #1565c0; }}
-        .f1 {{ background-color: #fff3e0; color: #e65100; }}
-        .good {{ color: #27ae60; font-weight: bold; }}
-        .bad {{ color: #e74c3c; font-weight: bold; }}
+        
+        .precision {{
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border-color: rgba(16, 185, 129, 0.3);
+        }}
+        
+        .recall {{
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--info);
+            border-color: rgba(59, 130, 246, 0.3);
+        }}
+        
+        .f1 {{
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+            border-color: rgba(245, 158, 11, 0.3);
+        }}
+        
+        .good {{
+            color: var(--success);
+            font-weight: 700;
+        }}
+        
+        .bad {{
+            color: var(--error);
+            font-weight: 700;
+        }}
+        
         .performance {{
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin: 20px 0;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
         }}
+        
         .performance-card {{
-            padding: 20px;
-            border-radius: 8px;
-            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            background: var(--bg-card);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
         }}
+        
+        .performance-card:hover {{
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--accent-primary);
+        }}
+        
         .performance-card h3 {{
             margin-top: 0;
-            color: #2c3e50;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            font-size: 1.3rem;
+            font-weight: 700;
+        }}
+        
+        .performance-card p {{
+            margin: 12px 0;
+            color: var(--text-secondary);
+        }}
+        
+        .performance-card strong {{
+            color: var(--text-primary);
+        }}
+        
+        .warning-box {{
+            background: rgba(245, 158, 11, 0.15);
+            border-left: 4px solid var(--warning);
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 12px;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }}
+        
+        .warning-box h3 {{
+            margin-top: 0;
+            color: var(--warning);
+            font-weight: 700;
+        }}
+        
+        .warning-box p {{
+            color: var(--text-secondary);
+            margin: 10px 0;
+        }}
+        
+        .warning-box ul {{
+            margin: 15px 0;
+            padding-left: 25px;
+            color: var(--text-secondary);
+        }}
+        
+        .warning-box li {{
+            margin: 8px 0;
+        }}
+        
+        .warning-box code {{
+            background: var(--bg-tertiary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }}
+        
+        ul {{
+            list-style: none;
+            padding: 0;
+        }}
+        
+        ul li {{
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+            color: var(--text-secondary);
+        }}
+        
+        ul li:last-child {{
+            border-bottom: none;
+        }}
+        
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {{
+            width: 12px;
+        }}
+        
+        ::-webkit-scrollbar-track {{
+            background: var(--bg-secondary);
+        }}
+        
+        ::-webkit-scrollbar-thumb {{
+            background: var(--bg-card);
+            border-radius: 6px;
+            border: 2px solid var(--bg-secondary);
+        }}
+        
+        ::-webkit-scrollbar-thumb:hover {{
+            background: var(--accent-primary);
+        }}
+        
+        /* Responsive */
+        @media (max-width: 768px) {{
+            .container {{
+                padding: 20px;
+            }}
+            
+            h1 {{
+                font-size: 2rem;
+            }}
+            
+            h2 {{
+                font-size: 1.5rem;
+            }}
+            
+            .summary {{
+                grid-template-columns: 1fr;
+            }}
+            
+            .performance {{
+                grid-template-columns: 1fr;
+            }}
+            
+            table {{
+                font-size: 0.9rem;
+            }}
+            
+            th, td {{
+                padding: 10px;
+            }}
         }}
     </style>
 </head>
@@ -182,7 +495,7 @@ def generate_html_report(json_file: Path):
     if snyk_times and deepsource_times:
         speed_ratio = avg_snyk / avg_deepsource
         html_content += f"""
-        <p><strong>DeepSource, Snyk Code'dan {speed_ratio:.1f}x daha hızlı</strong></p>
+        <p style="text-align: center; font-size: 1.2rem; color: var(--text-primary); margin: 20px 0;"><strong>DeepSource, Snyk Code'dan {speed_ratio:.1f}x daha hızlı</strong></p>
 """
     
     # Doğruluk metrikleri
@@ -340,8 +653,8 @@ def generate_html_report(json_file: Path):
     
     html_content += """
         <h2>⚠️ Önemli Notlar</h2>
-        <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
-            <h3 style="margin-top: 0;">DeepSource Metrikleri Hakkında</h3>
+        <div class="warning-box">
+            <h3>DeepSource Metrikleri Hakkında</h3>
             <p><strong>DeepSource API repository-based çalışır:</strong> DeepSource GraphQL API, sadece GitHub repository'sindeki kodları analiz eder. 
             Local test projeleri (<code>vulnerable_sql_injection</code>, <code>vulnerable_command_injection</code>, vb.) GitHub repository'sinde 
             bulunmadığı için DeepSource API bu projeler için issue tespit edememiştir.</p>
@@ -363,6 +676,7 @@ def generate_html_report(json_file: Path):
         f.write(html_content)
     
     print(f"HTML rapor kaydedildi: {html_file}")
+    return html_file
 
 
 if __name__ == "__main__":
@@ -380,4 +694,3 @@ if __name__ == "__main__":
             sys.exit(1)
     
     generate_html_report(json_file)
-

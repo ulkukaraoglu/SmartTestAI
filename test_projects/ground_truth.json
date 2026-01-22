@@ -98,6 +98,197 @@
       "description": "Debug mode production'da açık"
     }
   ],
-  "flask_demo": []
+  "flask_demo": [],
+  "vulnerable_comprehensive": [
+    {
+      "file": "app.py",
+      "line": 18,
+      "type": "HARDCODED_CREDENTIALS",
+      "severity": "critical",
+      "description": "Hardcoded database password"
+    },
+    {
+      "file": "app.py",
+      "line": 19,
+      "type": "HARDCODED_CREDENTIALS",
+      "severity": "critical",
+      "description": "Hardcoded API key"
+    },
+    {
+      "file": "app.py",
+      "line": 20,
+      "type": "HARDCODED_CREDENTIALS",
+      "severity": "critical",
+      "description": "Hardcoded secret key"
+    },
+    {
+      "file": "app.py",
+      "line": 21,
+      "type": "HARDCODED_CREDENTIALS",
+      "severity": "critical",
+      "description": "Hardcoded admin username"
+    },
+    {
+      "file": "app.py",
+      "line": 22,
+      "type": "HARDCODED_CREDENTIALS",
+      "severity": "critical",
+      "description": "Hardcoded admin password"
+    },
+    {
+      "file": "app.py",
+      "line": 35,
+      "type": "SQL_INJECTION",
+      "severity": "high",
+      "description": "SQL Injection açığı: user_id parametresi doğrudan SQL sorgusuna ekleniyor"
+    },
+    {
+      "file": "app.py",
+      "line": 48,
+      "type": "SQL_INJECTION",
+      "severity": "high",
+      "description": "SQL Injection açığı: search parametresi doğrudan SQL sorgusuna ekleniyor"
+    },
+    {
+      "file": "app.py",
+      "line": 62,
+      "type": "SQL_INJECTION",
+      "severity": "high",
+      "description": "SQL Injection açığı: email parametresi doğrudan SQL sorgusuna ekleniyor"
+    },
+    {
+      "file": "app.py",
+      "line": 75,
+      "type": "XSS",
+      "severity": "medium",
+      "description": "XSS açığı: user input doğrudan HTML'e ekleniyor"
+    },
+    {
+      "file": "app.py",
+      "line": 87,
+      "type": "XSS",
+      "severity": "medium",
+      "description": "XSS açığı: search parametresi doğrudan HTML'e ekleniyor"
+    },
+    {
+      "file": "app.py",
+      "line": 99,
+      "type": "XSS",
+      "severity": "medium",
+      "description": "XSS açığı: username parametresi doğrudan HTML'e ekleniyor"
+    },
+    {
+      "file": "app.py",
+      "line": 112,
+      "type": "COMMAND_INJECTION",
+      "severity": "critical",
+      "description": "Command Injection açığı: host parametresi doğrudan shell komutuna ekleniyor"
+    },
+    {
+      "file": "app.py",
+      "line": 125,
+      "type": "COMMAND_INJECTION",
+      "severity": "critical",
+      "description": "Command Injection açığı: command parametresi doğrudan shell komutuna ekleniyor"
+    },
+    {
+      "file": "app.py",
+      "line": 138,
+      "type": "PATH_TRAVERSAL",
+      "severity": "high",
+      "description": "Path Traversal açığı: filename parametresi doğrudan dosya okuma işleminde kullanılıyor"
+    },
+    {
+      "file": "app.py",
+      "line": 150,
+      "type": "PATH_TRAVERSAL",
+      "severity": "high",
+      "description": "Path Traversal açığı: filename parametresi doğrudan dosya indirme işleminde kullanılıyor"
+    },
+    {
+      "file": "app.py",
+      "line": 163,
+      "type": "WEAK_HASHING",
+      "severity": "high",
+      "description": "Weak password hashing: MD5 kullanımı"
+    },
+    {
+      "file": "app.py",
+      "line": 175,
+      "type": "HARDCODED_CREDENTIALS",
+      "severity": "high",
+      "description": "Hardcoded API key kullanımı"
+    },
+    {
+      "file": "app.py",
+      "line": 188,
+      "type": "HARDCODED_CREDENTIALS",
+      "severity": "high",
+      "description": "Hardcoded database password kullanımı"
+    },
+    {
+      "file": "app.py",
+      "line": 201,
+      "type": "INSECURE_DESERIALIZATION",
+      "severity": "critical",
+      "description": "Insecure Deserialization açığı: pickle kullanımı"
+    },
+    {
+      "file": "app.py",
+      "line": 214,
+      "type": "SSRF",
+      "severity": "high",
+      "description": "SSRF açığı: URL parametresi doğrudan HTTP isteğinde kullanılıyor"
+    },
+    {
+      "file": "app.py",
+      "line": 228,
+      "type": "INSECURE_RANDOM",
+      "severity": "medium",
+      "description": "Insecure Random açığı: random modülü kriptografik olarak güvenli değil"
+    },
+    {
+      "file": "app.py",
+      "line": 242,
+      "type": "INFORMATION_DISCLOSURE",
+      "severity": "high",
+      "description": "Information Disclosure açığı: Debug bilgileri ve sensitive data production'da açık"
+    },
+    {
+      "file": "app.py",
+      "line": 254,
+      "type": "INFORMATION_DISCLOSURE",
+      "severity": "medium",
+      "description": "Information Disclosure açığı: Hata mesajları çok detaylı"
+    },
+    {
+      "file": "app.py",
+      "line": 268,
+      "type": "IDOR",
+      "severity": "high",
+      "description": "Insecure Direct Object Reference açığı: Authorization kontrolü yok"
+    },
+    {
+      "file": "app.py",
+      "line": 283,
+      "type": "CORS_MISCONFIGURATION",
+      "severity": "medium",
+      "description": "CORS Misconfiguration açığı: Tüm origin'lere izin veriliyor"
+    },
+    {
+      "file": "app.py",
+      "line": 297,
+      "type": "WEAK_CRYPTOGRAPHY",
+      "severity": "high",
+      "description": "Weak Cryptography açığı: XOR şifreleme kullanımı"
+    },
+    {
+      "file": "app.py",
+      "line": 310,
+      "type": "DEBUG_MODE",
+      "severity": "medium",
+      "description": "Debug mode production'da açık"
+    }
+  ]
 }
 

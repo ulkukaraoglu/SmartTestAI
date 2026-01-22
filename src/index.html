@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartTestAI - Kod Analiz Aracı Karşılaştırma</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -140,70 +143,6 @@
                                 <p><strong>Tarama Süresi:</strong> <span id="deepsourceDuration">0.0s</span></p>
                             </div>
                             <button class="btn btn-secondary btn-sm" onclick="showDetails('deepsource')">Detayları Göster</button>
-                        </div>
-                    </div>
-
-                    <!-- Advanced Metrics -->
-                    <div class="advanced-metrics-section">
-                        <h3>📈 Gelişmiş Metrikler</h3>
-                        <div class="metrics-comparison">
-                            <div class="metric-comparison-card">
-                                <h4>Precision (Doğruluk)</h4>
-                                <div class="progress-comparison">
-                                    <div class="progress-item">
-                                        <label>Snyk Code</label>
-                                        <div class="progress-bar-small">
-                                            <div class="progress-fill" id="snykPrecisionBar" style="width: 0%"></div>
-                                        </div>
-                                        <span id="snykPrecision">0%</span>
-                                    </div>
-                                    <div class="progress-item">
-                                        <label>DeepSource</label>
-                                        <div class="progress-bar-small">
-                                            <div class="progress-fill" id="deepsourcePrecisionBar" style="width: 0%"></div>
-                                        </div>
-                                        <span id="deepsourcePrecision">0%</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="metric-comparison-card">
-                                <h4>Recall (Geri Çağırma)</h4>
-                                <div class="progress-comparison">
-                                    <div class="progress-item">
-                                        <label>Snyk Code</label>
-                                        <div class="progress-bar-small">
-                                            <div class="progress-fill" id="snykRecallBar" style="width: 0%"></div>
-                                        </div>
-                                        <span id="snykRecall">0%</span>
-                                    </div>
-                                    <div class="progress-item">
-                                        <label>DeepSource</label>
-                                        <div class="progress-bar-small">
-                                            <div class="progress-fill" id="deepsourceRecallBar" style="width: 0%"></div>
-                                        </div>
-                                        <span id="deepsourceRecall">0%</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="metric-comparison-card">
-                                <h4>F1 Score</h4>
-                                <div class="progress-comparison">
-                                    <div class="progress-item">
-                                        <label>Snyk Code</label>
-                                        <div class="progress-bar-small">
-                                            <div class="progress-fill" id="snykF1Bar" style="width: 0%"></div>
-                                        </div>
-                                        <span id="snykF1">0%</span>
-                                    </div>
-                                    <div class="progress-item">
-                                        <label>DeepSource</label>
-                                        <div class="progress-bar-small">
-                                            <div class="progress-fill" id="deepsourceF1Bar" style="width: 0%"></div>
-                                        </div>
-                                        <span id="deepsourceF1">0%</span>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
