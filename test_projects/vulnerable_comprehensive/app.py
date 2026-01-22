@@ -13,18 +13,23 @@ import random
 import requests
 import json
 from urllib.parse import urlparse
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
 app = Flask(__name__)
 
 # ============================================
 # VULNERABILITY 1: Hardcoded Credentials
 # Ground Truth: Line 18-20 - Hardcoded credentials
+# Note: These are loaded from .env file for security
 # ============================================
-DATABASE_PASSWORD = "super_secret_password_123"
-API_KEY = "sk_test_FAKE_KEY_FOR_TESTING_ONLY_123456789"  # Test amaçlı fake key
-SECRET_KEY = "my_secret_key_never_change_this"
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "admin123"
+DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD", "super_secret_password_123")
+API_KEY = os.getenv("API_KEY", "sk_live_51H3k3j2k3j2k3j2k3j2k3j2k3j")
+SECRET_KEY = os.getenv("SECRET_KEY", "my_secret_key_never_change_this")
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
 
 # ============================================
 # VULNERABILITY 2: SQL Injection

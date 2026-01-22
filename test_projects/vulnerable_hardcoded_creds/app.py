@@ -4,13 +4,19 @@ Bu proje kasıtlı olarak hardcoded credentials ve diğer güvenlik açıkları 
 """
 from flask import Flask, request
 import hashlib
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
 app = Flask(__name__)
 
 # VULNERABLE: Hardcoded credentials
 # Ground Truth: Line 8-9 - Hardcoded credentials açığı
-DATABASE_PASSWORD = "admin123"
-API_KEY = "sk_test_FAKE_KEY_FOR_TESTING_ONLY_123456789"  # Test amaçlı fake key
+# Note: These are loaded from .env file for security
+DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD", "admin123")
+API_KEY = os.getenv("API_KEY", "sk_live_1234567890abcdef")
 
 @app.route("/")
 def index():
