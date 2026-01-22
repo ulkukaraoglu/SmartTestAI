@@ -16,7 +16,7 @@ app = Flask(__name__)
 # Ground Truth: Line 8-9 - Hardcoded credentials açığı
 # Note: These are loaded from .env file for security
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD", "admin123")
-API_KEY = os.getenv("API_KEY", "sk_live_1234567890abcdef")
+API_KEY = os.getenv("API_KEY", "STRIPE_API_KEY_PLACEHOLDER_DO_NOT_USE_IN_PRODUCTION")
 
 @app.route("/")
 def index():

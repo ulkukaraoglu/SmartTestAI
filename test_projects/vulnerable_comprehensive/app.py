@@ -26,7 +26,7 @@ app = Flask(__name__)
 # Note: These are loaded from .env file for security
 # ============================================
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD", "super_secret_password_123")
-API_KEY = os.getenv("API_KEY", "sk_live_51H3k3j2k3j2k3j2k3j2k3j2k3j")
+API_KEY = os.getenv("API_KEY", "STRIPE_API_KEY_PLACEHOLDER_DO_NOT_USE_IN_PRODUCTION")
 SECRET_KEY = os.getenv("SECRET_KEY", "my_secret_key_never_change_this")
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
