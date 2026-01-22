@@ -10,7 +10,7 @@ app = Flask(__name__)
 # VULNERABLE: Hardcoded credentials
 # Ground Truth: Line 8-9 - Hardcoded credentials açığı
 DATABASE_PASSWORD = "admin123"
-API_KEY = "sk_live_1234567890abcdef"
+API_KEY = "sk_test_FAKE_KEY_FOR_TESTING_ONLY_123456789"  # Test amaçlı fake key
 
 @app.route("/")
 def index():

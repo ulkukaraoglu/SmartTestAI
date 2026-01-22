@@ -21,7 +21,7 @@ app = Flask(__name__)
 # Ground Truth: Line 18-20 - Hardcoded credentials
 # ============================================
 DATABASE_PASSWORD = "super_secret_password_123"
-API_KEY = "sk_live_51H3k3j2k3j2k3j2k3j2k3j2k3j"
+API_KEY = "sk_test_FAKE_KEY_FOR_TESTING_ONLY_123456789"  # Test amaçlı fake key
 SECRET_KEY = "my_secret_key_never_change_this"
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "admin123"
