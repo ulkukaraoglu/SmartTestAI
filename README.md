@@ -187,6 +187,8 @@ Detaylı API dokümantasyonu için: `backend/API_DOCUMENTATION.md`
 
 Snyk CLI'nin kurulu ve authenticate edilmiş olması gerekir:
 
+
+
 ```bash
 # Snyk CLI kurulumu
 npm install -g snyk
@@ -194,11 +196,9 @@ npm install -g snyk
 # Authentication
 snyk auth
 
-# Organization ayarı
-# Proje otomatik olarak şu organizasyonu kullanır:
-# - Organization: SmartTestAI-demo
-# - Organization ID: 31b7aa9b-c8a6-443a-8858-4576d54abd64
-```
+# DeepSource API token'ı ayarlayın (opsiyonel)
+set DEEPSOURCE_API_TOKEN="your_token"  => cmd 
+$env:DEEPSOURCE_API_TOKEN="your_token" => PowerShell
 
 **Not:** Organizasyon bilgileri `backend/metric_runner.py` dosyasında tanımlıdır ve tüm taramalarda otomatik kullanılır.
 
@@ -227,7 +227,9 @@ Tüm tarama sonuçları `results/` klasörüne kaydedilir:
 - `deepsource_flask_demo_2026-01-02_17-34-46.json`
 - `snyk_advanced_metrics_snyk_code_vulnerable_demo_2026-01-02_15-44-31_2026-01-02_17-26-17.json`
 
-## 👥 Ekip Görevleri
+## 👥 Ekip Görevleri (Tamamlandı)
+
+Tüm planlı iş paketleri tamamlandı.
 
 ### ✅ Kişi 1: Snyk Entegrasyonu
 - Snyk Code taraması
@@ -240,35 +242,16 @@ Tüm tarama sonuçları `results/` klasörüne kaydedilir:
 - Test modu desteği
 - Gelişmiş metrik hesaplama
 
-### 🔄 Kişi 3: Otomasyon Script'i (Planlanıyor)
-- Otomatik tarama script'i
-- Sonuç karşılaştırması
+### ✅ Kişi 3: Otomasyon ve karşılaştırma
+- `backend/benchmark_runner.py` — çalışan API üzerinden toplu tarama ve sonuç toplama
+- `backend/comprehensive_test_report.py` — kapsamlı test raporu
+- `backend/generate_html_report.py`, `backend/generate_analysis_report.py` — HTML / analiz raporu üretimi
 
-### 🔄 Kişi 4: Arayüz (Planlanıyor)
-- Web arayüzü
-- Sonuç görselleştirme
+### ✅ Kişi 4: Web arayüzü
+- `src/` — dosya yükleme ve tarama akışı (`index.html`, `app.js`); backend `app.py` ile aynı origin’de (`http://localhost:5001/`) sunulur
+- `POST /upload` ile kod yükleme; Snyk / DeepSource tarama sonuçlarının arayüzde gösterilmesi
 
-## 🔧 Geliştirme
 
-### Yeni Araç Ekleme
-
-1. `metrics/` klasörüne yeni metric class'ı ekleyin (`BaseMetric`'ten türetin)
-2. `backend/` klasörüne yeni runner ekleyin
-3. `app.py`'ye yeni endpoint'ler ekleyin
-4. Metrikleri standart formata normalize edin
-
-Örnek:
-
-```python
-# metrics/my_tool_metrics.py
-from .base_metric import BaseMetric
-from .result_model import MetricResult
-
-class MyToolMetrics(BaseMetric):
-    def calculate(self, raw_data: dict) -> MetricResult:
-        # Araç özel normalizasyon mantığı
-        return MetricResult(...)
-```
 
 ## 📚 Dokümantasyon
 
@@ -302,7 +285,6 @@ Windows'ta emoji karakterleri sorun çıkarabilir. Kod içindeki emoji'ler kald�
 
 Bu proje eğitim/araştırma amaçlıdır.
 
-## 🤝 Katkıda Bulunma
 
 1. Fork edin
 2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
@@ -310,10 +292,7 @@ Bu proje eğitim/araştırma amaçlıdır.
 4. Push edin (`git push origin feature/amazing-feature`)
 5. Pull Request açın
 
-## 📧 İletişim
-
-Sorularınız için issue açabilirsiniz.
 
 ---
 
-**Not**: Bu proje, AI kod analiz araçlarını karşılaştırmak için geliştirilmiştir. Tüm kodlar detaylı açıklamalar içerir ve eğitim amaçlıdır.
+**Not**: Bu proje, AI kod analiz araçlarını karşılaştırmak için geliştirilmiştir. Tüm kodlar detaylı açıklamalar içerir.

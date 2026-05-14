@@ -1,18 +1,18 @@
 # SmartTestAI Web UI
 
-Modern ve kullanıcı dostu web arayüzü ile kod dosyalarınızı yükleyin ve Snyk Code ile DeepSource araçlarını kullanarak analiz edin.
+Upload code files through a simple web interface and analyze them with **Snyk Code** and **DeepSource**.
 
-## Özellikler
+## Features
 
-- 📁 **Dosya Yükleme**: Drag & drop veya tıklayarak dosya yükleme
-- 🔍 **Çift Tarama**: Her iki araç (Snyk Code ve DeepSource) ile otomatik tarama
-- 📊 **Detaylı Sonuçlar**: Karşılaştırmalı metrikler ve grafikler
-- 🎯 **Gelişmiş Metrikler**: Precision, Recall, F1 Score analizi
-- 💾 **Anında Görünüm**: Gerçek zamanlı tarama durumu ve sonuçlar
+- **File upload**: Drag and drop or click to select files
+- **Dual scan**: Runs both Snyk Code and DeepSource automatically
+- **Detailed results**: Side-by-side metrics
+- **Advanced metrics**: Precision, recall, and F1 when ground truth is available
+- **Live status**: Scan progress and results on the same page
 
-## Kurulum ve Kullanım
+## Setup
 
-### Backend'i Başlatın (Web UI Otomatik Açılacak)
+### Start the backend (Web UI is served from the same app)
 
 ```bash
 cd backend
@@ -20,20 +20,21 @@ pip install flask flask-cors
 python app.py
 ```
 
-Backend başlatıldığında:
-- **Web UI otomatik olarak aynı port'tan servis edilir**: `http://localhost:5001`
-- **API endpoint'leri**: `http://localhost:5001/api/*`
+When the backend is running:
 
-Tarayıcınızda **`http://localhost:5001`** adresini açarak Web UI'yi kullanmaya başlayabilirsiniz. Ayrı bir HTTP sunucusu çalıştırmanıza gerek yok!
+- **Web UI**: `http://localhost:5001`
+- **API**: same origin, e.g. `http://localhost:5001/projects`
 
-## Kullanım
+Open **`http://localhost:5001`** in your browser. You do not need a separate static file server.
 
-1. **Dosya Yükle**: Ana sayfada dosyalarınızı sürükleyip bırakın veya tıklayarak seçin
-2. **Taramayı Başlat**: "🔍 Taramayı Başlat" butonuna tıklayın
-3. **Sonuçları İncele**: Her iki araç için detaylı sonuçları görüntüleyin
-4. **Detaylı Analiz**: "Detayları Göster" butonuna tıklayarak gelişmiş metrikleri görüntüleyin
+## Usage
 
-## Desteklenen Dosya Formatları
+1. **Upload files** on the home page (drag and drop or click).
+2. Click **Start scan**.
+3. Review results for each tool.
+4. Click **Show details** for advanced metrics in the modal.
+
+## Supported file types
 
 - Python: `.py`
 - JavaScript: `.js`
@@ -42,42 +43,39 @@ Tarayıcınızda **`http://localhost:5001`** adresini açarak Web UI'yi kullanma
 - Go: `.go`
 - Rust: `.rs`
 - Text: `.txt`
-- ZIP Arşivleri: `.zip`
+- Archives: `.zip`
 
-## API Endpoint'leri
+## API endpoints used by the UI
 
-Web UI aşağıdaki backend endpoint'lerini kullanır:
+- `POST /upload` — file upload
+- `POST /scan/code` — Snyk Code scan
+- `POST /scan/deepsource` — DeepSource scan
 
-- `POST /upload` - Dosya yükleme
-- `POST /scan/code` - Snyk Code taraması
-- `POST /scan/deepsource` - DeepSource taraması
+## Troubleshooting
 
-## Sorun Giderme
+### CORS errors
 
-### CORS Hatası
+1. Ensure `flask-cors` is installed on the backend.
+2. Ensure the backend listens on `http://localhost:5001`.
+3. Open the UI via that URL (not as a raw `file://` page if your browser blocks requests).
 
-Eğer CORS hatası alıyorsanız:
-1. Backend'de `flask-cors` paketinin yüklü olduğundan emin olun
-2. Backend'in `http://localhost:5001` adresinde çalıştığından emin olun
-3. Web UI'yi bir HTTP sunucusu üzerinden açın (basit dosya açma yerine)
+### Cannot reach the backend
 
-### Backend Bağlantı Hatası
+- Check `http://localhost:5001/projects`.
+- The UI uses `window.location.origin` as `API_BASE_URL` in `app.js`.
 
-- Backend'in çalıştığını kontrol edin: `http://localhost:5001/projects`
-- `app.js` dosyasındaki `API_BASE_URL` değerini kontrol edin
+### Upload failures
 
-### Dosya Yükleme Hatası
+- Check file size (rough guideline: under ~10MB depending on server limits).
+- Confirm the file extension is allowed.
+- Check backend logs.
 
-- Dosya boyutunu kontrol edin (maksimum önerilen: 10MB)
-- Desteklenen dosya formatlarını kontrol edin
-- Backend loglarını kontrol edin
+## Development
 
-## Geliştirme
+The UI consists of:
 
-Web UI üç ana dosyadan oluşur:
+- `index.html` — structure
+- `style.css` — layout and styling
+- `app.js` — behavior and API calls
 
-- `index.html` - HTML yapısı
-- `style.css` - Stil ve tasarım
-- `app.js` - JavaScript işlevselliği
-
-Değişiklik yapmak için bu dosyaları düzenleyebilirsiniz.
+Edit these files to change the interface.

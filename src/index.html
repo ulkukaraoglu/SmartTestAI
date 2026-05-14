@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartTestAI - Kod Analiz Aracı Karşılaştırma</title>
+    <title>SmartTestAI — Code Analysis Tool Comparison</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -13,70 +13,70 @@
     <div class="container">
         <header>
             <h1>🔍 SmartTestAI</h1>
-            <p class="subtitle">AI Kod Analiz Araçlarını Karşılaştır</p>
+            <p class="subtitle">Compare AI-Powered Code Analysis Tools</p>
         </header>
 
         <main>
-            <!-- Dosya Yükleme Bölümü -->
-            <section class="upload-section">
+            <!-- File upload -->
+            <section class="upload-section" id="uploadSection">
                 <div class="upload-card">
-                    <h2>📁 Dosya Yükle</h2>
-                    <p>Analiz edilecek Python dosyasını yükleyin (veya bir ZIP arşivi)</p>
+                    <h2>📁 Upload Files</h2>
+                    <p>Upload the Python file to analyze (or a ZIP archive)</p>
                     
                     <div class="upload-area" id="uploadArea">
                         <input type="file" id="fileInput" accept=".py,.zip,.txt,.js,.java,.cpp,.c,.go,.rs" style="display: none;" multiple>
                         <div class="upload-placeholder">
-                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                 <polyline points="17 8 12 3 7 8"></polyline>
                                 <line x1="12" y1="3" x2="12" y2="15"></line>
                             </svg>
-                            <p><strong>Dosyaları buraya sürükleyin</strong> veya tıklayın</p>
-                            <p class="file-info">Desteklenen formatlar: .py, .js, .java, .cpp, .c, .go, .rs, .txt, .zip</p>
+                            <p><strong>Drag files here</strong> or click to browse</p>
+                            <p class="file-info">Supported formats: .py, .js, .java, .cpp, .c, .go, .rs, .txt, .zip</p>
                         </div>
                         <div class="upload-progress" id="uploadProgress" style="display: none;">
                             <div class="progress-bar">
                                 <div class="progress-fill" id="progressFill"></div>
                             </div>
-                            <p id="progressText">Yükleniyor...</p>
+                            <p id="progressText">Uploading...</p>
                         </div>
                     </div>
 
                     <div class="file-list" id="fileList" style="display: none;">
-                        <h3>Yüklenen Dosyalar:</h3>
+                        <h3>Uploaded files:</h3>
                         <ul id="fileListItems"></ul>
                     </div>
 
                     <button class="btn btn-primary" id="scanButton" disabled>
-                        🔍 Taramayı Başlat
+                        🔍 Start scan
                     </button>
                 </div>
             </section>
 
-            <!-- Tarama Sonuçları Bölümü -->
+            <!-- Scan results -->
             <section class="results-section" id="resultsSection" style="display: none;">
-                <h2>📊 Tarama Sonuçları</h2>
+                <h2>📊 Scan results</h2>
                 
                 <!-- Loading State -->
                 <div class="loading-state" id="loadingState">
                     <div class="spinner"></div>
-                    <p>Taranıyor... Bu işlem birkaç dakika sürebilir.</p>
+                    <p>Scanning... This may take a few minutes.</p>
                     <div class="scan-progress">
                         <div class="scan-step" id="step1">
                             <span class="step-icon">⏳</span>
-                            <span>Dosya yükleniyor...</span>
+                            <span>Uploading files...</span>
                         </div>
                         <div class="scan-step" id="step2">
                             <span class="step-icon">⏳</span>
-                            <span>Snyk Code taraması...</span>
+                            <span>Snyk Code scan...</span>
                         </div>
                         <div class="scan-step" id="step3">
                             <span class="step-icon">⏳</span>
-                            <span>DeepSource taraması...</span>
+                            <span>DeepSource scan...</span>
                         </div>
                         <div class="scan-step" id="step4">
                             <span class="step-icon">⏳</span>
-                            <span>Sonuçlar hazırlanıyor...</span>
+                            <span>Preparing results...</span>
                         </div>
                     </div>
                 </div>
@@ -88,7 +88,7 @@
                         <div class="comparison-card snyk-card">
                             <div class="card-header">
                                 <h3>🛡️ Snyk Code</h3>
-                                <span class="status-badge" id="snykStatus">Başarılı</span>
+                                <span class="status-badge" id="snykStatus">Success</span>
                             </div>
                             <div class="metrics-grid">
                                 <div class="metric-item critical">
@@ -109,16 +109,16 @@
                                 </div>
                             </div>
                             <div class="metric-summary">
-                                <p><strong>Toplam Issues:</strong> <span id="snykTotal">0</span></p>
-                                <p><strong>Tarama Süresi:</strong> <span id="snykDuration">0.0s</span></p>
+                                <p><strong>Total issues:</strong> <span id="snykTotal">0</span></p>
+                                <p><strong>Scan duration:</strong> <span id="snykDuration">0.0s</span></p>
                             </div>
-                            <button class="btn btn-secondary btn-sm" onclick="showDetails('snyk')">Detayları Göster</button>
+                            <button class="btn btn-secondary btn-sm" onclick="showDetails('snyk')">Show details</button>
                         </div>
 
                         <div class="comparison-card deepsource-card">
                             <div class="card-header">
                                 <h3>🤖 DeepSource</h3>
-                                <span class="status-badge" id="deepsourceStatus">Başarılı</span>
+                                <span class="status-badge" id="deepsourceStatus">Success</span>
                             </div>
                             <div class="metrics-grid">
                                 <div class="metric-item critical">
@@ -139,19 +139,21 @@
                                 </div>
                             </div>
                             <div class="metric-summary">
-                                <p><strong>Toplam Issues:</strong> <span id="deepsourceTotal">0</span></p>
-                                <p><strong>Tarama Süresi:</strong> <span id="deepsourceDuration">0.0s</span></p>
+                                <p><strong>Total issues:</strong> <span id="deepsourceTotal">0</span></p>
+                                <p><strong>Scan duration:</strong> <span id="deepsourceDuration">0.0s</span></p>
                             </div>
-                            <button class="btn btn-secondary btn-sm" onclick="showDetails('deepsource')">Detayları Göster</button>
+                            <button class="btn btn-secondary btn-sm" onclick="showDetails('deepsource')">Show details</button>
                         </div>
                     </div>
 
                     <!-- Detailed Results Modal -->
                     <div class="modal" id="detailsModal">
-                        <div class="modal-content">
-                            <span class="close" onclick="closeModal()">&times;</span>
-                            <h2 id="modalTitle">Detaylı Sonuçlar</h2>
-                            <div id="modalBody"></div>
+                        <div class="modal-content modal-content--details">
+                            <div class="modal-header">
+                                <h2 id="modalTitle">Detailed results</h2>
+                                <span class="close" onclick="closeModal()" aria-label="Close">&times;</span>
+                            </div>
+                            <div id="modalBody" class="modal-body"></div>
                         </div>
                     </div>
                 </div>
@@ -159,19 +161,18 @@
                 <!-- Error State -->
                 <div class="error-state" id="errorState" style="display: none;">
                     <div class="error-icon">❌</div>
-                    <h3>Hata Oluştu</h3>
+                    <h3>Something went wrong</h3>
                     <p id="errorMessage"></p>
-                    <button class="btn btn-primary" onclick="resetScan()">Yeniden Dene</button>
+                    <button class="btn btn-primary" onclick="resetScan()">Try again</button>
                 </div>
             </section>
         </main>
 
         <footer>
-            <p>SmartTestAI - AI Kod Analiz Araçları Benchmark Sistemi</p>
+            <p>SmartTestAI — AI code analysis tools benchmark</p>
         </footer>
     </div>
 
     <script src="app.js"></script>
 </body>
 </html>
-

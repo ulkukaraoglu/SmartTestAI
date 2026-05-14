@@ -1,0 +1,38 @@
+{
+  "tool_name": "deepsource",
+  "project": "uploaded_c97a5144_1778793221",
+  "timestamp": "2026-05-15_00-13-57",
+  "basic_metrics": {
+    "tool_name": "DeepSource",
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0,
+    "total_issues": 0,
+    "scan_duration": 1.74391508102417
+  },
+  "advanced_metrics": {
+    "defect_detection_accuracy": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "true_positives": 0,
+      "false_positives": 2,
+      "false_negatives": 0,
+      "true_negatives": 0
+    },
+    "code_coverage": {
+      "code_coverage_percent": 100.0,
+      "files_analyzed": 1,
+      "lines_analyzed": 20
+    },
+    "false_positive_rate": 1.0,
+    "operational_efficiency": {
+      "average_scan_time": 1.74391508102417,
+      "cpu_usage_percent": 14.2,
+      "memory_usage_mb": 43.96484375
+    },
+    "code_quality_score": null
+  },
+  "ground_truth_count": 0
+}
