@@ -4,6 +4,167 @@ const API_BASE_URL = window.location.origin;
 // Global state
 let uploadedFiles = [];
 let scanResults = {};
+let lastDetailsTool = null;
+
+// ----- Internationalization (i18n) -----
+const translations = {
+    en: {
+        subtitle: 'Compare AI-Powered Code Analysis Tools',
+        upload_title: '📁 Upload Files',
+        upload_desc: 'Upload the Python file to analyze (or a ZIP archive)',
+        upload_drag: '<strong>Drag files here</strong> or click to browse',
+        upload_formats: 'Supported formats: .py, .js, .java, .cpp, .c, .go, .rs, .txt, .zip',
+        uploading: 'Uploading...',
+        uploaded_files: 'Uploaded files:',
+        start_scan: '🔍 Start scan',
+        results_title: '📊 Scan results',
+        scanning: 'Scanning... This may take a few minutes.',
+        step1: 'Uploading files...',
+        step2: 'Snyk Code scan...',
+        step3: 'DeepSource scan...',
+        step4: 'Preparing results...',
+        status_success: 'Success',
+        status_error: 'Error',
+        critical: 'Critical',
+        high: 'High',
+        medium: 'Medium',
+        low: 'Low',
+        total_issues_label: 'Total issues:',
+        scan_duration_label: 'Scan duration:',
+        show_details: 'Show details',
+        detailed_results: 'Detailed results',
+        error_title: 'Something went wrong',
+        try_again: 'Try again',
+        footer: 'SmartTestAI — AI code analysis tools benchmark',
+        // dynamic
+        details_suffix: 'Detailed results',
+        panel_core: 'Core metrics',
+        panel_defect: 'Defect detection',
+        panel_coverage: 'Code coverage',
+        panel_ops: 'Operations & quality',
+        col_metric: 'Metric',
+        col_value: 'Value',
+        m_total_issues: 'Total issues',
+        m_scan_duration: 'Scan duration',
+        m_precision: 'Precision',
+        m_recall: 'Recall',
+        m_f1: 'F1 score',
+        m_true_positives: 'True positives',
+        m_false_positives: 'False positives',
+        m_false_negatives: 'False negatives',
+        m_false_positive_rate: 'False positive rate',
+        m_code_coverage: 'Code coverage',
+        m_files_analyzed: 'Files analyzed',
+        m_lines_analyzed: 'Lines analyzed',
+        m_avg_scan_time: 'Average scan time',
+        m_cpu_usage: 'CPU usage',
+        m_memory_usage: 'Memory usage',
+        m_code_quality: 'Code quality score',
+        empty_advanced: 'Advanced metrics not computed. Ground truth is required for precision, recall, and F1.',
+        empty_na: 'N/A',
+        alert_no_files: 'Please upload at least one file first.',
+        alert_no_details: 'No detailed data available.'
+    },
+    tr: {
+        subtitle: 'Yapay Zeka Destekli Kod Analiz Araçlarını Karşılaştırın',
+        upload_title: '📁 Dosya Yükle',
+        upload_desc: 'Analiz edilecek Python dosyasını (veya ZIP arşivini) yükleyin',
+        upload_drag: '<strong>Dosyaları buraya sürükleyin</strong> ya da tıklayarak seçin',
+        upload_formats: 'Desteklenen formatlar: .py, .js, .java, .cpp, .c, .go, .rs, .txt, .zip',
+        uploading: 'Yükleniyor...',
+        uploaded_files: 'Yüklenen dosyalar:',
+        start_scan: '🔍 Taramayı başlat',
+        results_title: '📊 Tarama sonuçları',
+        scanning: 'Taranıyor... Bu birkaç dakika sürebilir.',
+        step1: 'Dosyalar yükleniyor...',
+        step2: 'Snyk Code taraması...',
+        step3: 'DeepSource taraması...',
+        step4: 'Sonuçlar hazırlanıyor...',
+        status_success: 'Başarılı',
+        status_error: 'Hata',
+        critical: 'Kritik',
+        high: 'Yüksek',
+        medium: 'Orta',
+        low: 'Düşük',
+        total_issues_label: 'Toplam sorun:',
+        scan_duration_label: 'Tarama süresi:',
+        show_details: 'Detayları göster',
+        detailed_results: 'Detaylı sonuçlar',
+        error_title: 'Bir şeyler ters gitti',
+        try_again: 'Tekrar dene',
+        footer: 'SmartTestAI — Yapay zeka kod analiz araçları kıyaslaması',
+        // dynamic
+        details_suffix: 'Detaylı sonuçlar',
+        panel_core: 'Temel metrikler',
+        panel_defect: 'Hata tespiti',
+        panel_coverage: 'Kod kapsamı',
+        panel_ops: 'Operasyon & kalite',
+        col_metric: 'Metrik',
+        col_value: 'Değer',
+        m_total_issues: 'Toplam sorun',
+        m_scan_duration: 'Tarama süresi',
+        m_precision: 'Kesinlik (Precision)',
+        m_recall: 'Duyarlılık (Recall)',
+        m_f1: 'F1 skoru',
+        m_true_positives: 'Doğru pozitif',
+        m_false_positives: 'Yanlış pozitif',
+        m_false_negatives: 'Yanlış negatif',
+        m_false_positive_rate: 'Yanlış pozitif oranı',
+        m_code_coverage: 'Kod kapsamı',
+        m_files_analyzed: 'Analiz edilen dosya',
+        m_lines_analyzed: 'Analiz edilen satır',
+        m_avg_scan_time: 'Ortalama tarama süresi',
+        m_cpu_usage: 'CPU kullanımı',
+        m_memory_usage: 'Bellek kullanımı',
+        m_code_quality: 'Kod kalite puanı',
+        empty_advanced: 'Gelişmiş metrikler hesaplanmadı. Kesinlik, duyarlılık ve F1 için ground truth gerekir.',
+        empty_na: 'Yok',
+        alert_no_files: 'Lütfen önce en az bir dosya yükleyin.',
+        alert_no_details: 'Detaylı veri bulunmuyor.'
+    }
+};
+
+let currentLang = localStorage.getItem('lang') || 'en';
+
+function t(key) {
+    const lang = translations[currentLang] ? currentLang : 'en';
+    return (translations[lang] && translations[lang][key]) || translations.en[key] || key;
+}
+
+function applyTranslations() {
+    document.documentElement.lang = currentLang;
+
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        el.textContent = t(el.getAttribute('data-i18n'));
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach(el => {
+        el.innerHTML = t(el.getAttribute('data-i18n-html'));
+    });
+
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-lang') === currentLang);
+    });
+
+    // Re-render the details modal if it is currently open
+    const modal = document.getElementById('detailsModal');
+    if (modal && modal.style.display === 'flex' && lastDetailsTool) {
+        showDetails(lastDetailsTool);
+    }
+}
+
+function setLanguage(lang) {
+    if (!translations[lang]) return;
+    currentLang = lang;
+    localStorage.setItem('lang', lang);
+    applyTranslations();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang')));
+    });
+    applyTranslations();
+});
 
 // DOM elements
 const fileInput = document.getElementById('fileInput');
@@ -88,7 +249,7 @@ function formatFileSize(bytes) {
 // Scan flow
 async function startScan() {
     if (uploadedFiles.length === 0) {
-        alert('Please upload at least one file first.');
+        alert(t('alert_no_files'));
         return;
     }
 
@@ -269,8 +430,10 @@ function displaySnykResults(result) {
     console.log('Snyk Result:', result);
     console.log('Snyk Advanced Metrics:', advanced);
 
-    document.getElementById('snykStatus').textContent = 'Success';
-    document.getElementById('snykStatus').className = 'status-badge success';
+    const snykStatusEl = document.getElementById('snykStatus');
+    snykStatusEl.dataset.i18n = 'status_success';
+    snykStatusEl.textContent = t('status_success');
+    snykStatusEl.className = 'status-badge success';
     document.getElementById('snykCritical').textContent = metrics.critical || 0;
     document.getElementById('snykHigh').textContent = metrics.high || 0;
     document.getElementById('snykMedium').textContent = metrics.medium || 0;
@@ -292,8 +455,10 @@ function displayDeepSourceResults(result) {
     console.log('DeepSource Result:', result);
     console.log('DeepSource Advanced Metrics:', advanced);
 
-    document.getElementById('deepsourceStatus').textContent = 'Success';
-    document.getElementById('deepsourceStatus').className = 'status-badge success';
+    const deepsourceStatusEl = document.getElementById('deepsourceStatus');
+    deepsourceStatusEl.dataset.i18n = 'status_success';
+    deepsourceStatusEl.textContent = t('status_success');
+    deepsourceStatusEl.className = 'status-badge success';
     document.getElementById('deepsourceCritical').textContent = metrics.critical || 0;
     document.getElementById('deepsourceHigh').textContent = metrics.high || 0;
     document.getElementById('deepsourceMedium').textContent = metrics.medium || 0;
@@ -311,7 +476,8 @@ function displayDeepSourceResults(result) {
 function displayError(tool, errorMessage) {
     const statusElement = document.getElementById(`${tool}Status`);
     if (statusElement) {
-        statusElement.textContent = 'Error';
+        statusElement.dataset.i18n = 'status_error';
+        statusElement.textContent = t('status_error');
         statusElement.className = 'status-badge error';
         statusElement.title = errorMessage;
     }
@@ -336,7 +502,7 @@ function displayError(tool, errorMessage) {
 }
 
 function buildCompactMetricTable(rows) {
-    let html = '<table class="issue-table issue-table--compact"><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>';
+    let html = `<table class="issue-table issue-table--compact"><thead><tr><th>${t('col_metric')}</th><th>${t('col_value')}</th></tr></thead><tbody>`;
     for (const [label, value] of rows) {
         html += `<tr><td>${label}</td><td>${value}</td></tr>`;
     }
@@ -357,25 +523,28 @@ function showDetails(tool) {
     const details = window[`${tool}Details`];
 
     if (!details) {
-        alert('No detailed data available.');
+        alert(t('alert_no_details'));
         return;
     }
+
+    lastDetailsTool = tool;
 
     console.log(`${tool} Details:`, details);
     console.log(`${tool} Advanced:`, details.advanced);
 
-    modalTitle.textContent = `${tool === 'snyk' ? 'Snyk Code' : 'DeepSource'} — Detailed results`;
+    modalTitle.removeAttribute('data-i18n');
+    modalTitle.textContent = `${tool === 'snyk' ? 'Snyk Code' : 'DeepSource'} — ${t('details_suffix')}`;
 
     const m = details.metrics || {};
     const coreRows = [
-        ['Total issues', m.total_issues ?? 0],
-        ['Critical', m.critical ?? 0],
-        ['High', m.high ?? 0],
-        ['Medium', m.medium ?? 0],
-        ['Low', m.low ?? 0],
-        ['Scan duration', `${(m.scan_duration || 0).toFixed(2)}s`]
+        [t('m_total_issues'), m.total_issues ?? 0],
+        [t('critical'), m.critical ?? 0],
+        [t('high'), m.high ?? 0],
+        [t('medium'), m.medium ?? 0],
+        [t('low'), m.low ?? 0],
+        [t('m_scan_duration'), `${(m.scan_duration || 0).toFixed(2)}s`]
     ];
-    const corePanel = detailMetricPanel('Core metrics', buildCompactMetricTable(coreRows));
+    const corePanel = detailMetricPanel(t('panel_core'), buildCompactMetricTable(coreRows));
 
     let defectPanel;
     let coveragePanel;
@@ -388,40 +557,40 @@ function showDetails(tool) {
             : (accuracy.false_positive_rate || 0);
 
         const defectRows = [
-            ['Precision', `${((accuracy.precision || 0) * 100).toFixed(2)}%`],
-            ['Recall', `${((accuracy.recall || 0) * 100).toFixed(2)}%`],
-            ['F1 score', `${((accuracy.f1_score || 0) * 100).toFixed(2)}%`],
-            ['True positives', accuracy.true_positives ?? 0],
-            ['False positives', accuracy.false_positives ?? 0],
-            ['False negatives', accuracy.false_negatives ?? 0],
-            ['False positive rate', `${(falsePositiveRate * 100).toFixed(2)}%`]
+            [t('m_precision'), `${((accuracy.precision || 0) * 100).toFixed(2)}%`],
+            [t('m_recall'), `${((accuracy.recall || 0) * 100).toFixed(2)}%`],
+            [t('m_f1'), `${((accuracy.f1_score || 0) * 100).toFixed(2)}%`],
+            [t('m_true_positives'), accuracy.true_positives ?? 0],
+            [t('m_false_positives'), accuracy.false_positives ?? 0],
+            [t('m_false_negatives'), accuracy.false_negatives ?? 0],
+            [t('m_false_positive_rate'), `${(falsePositiveRate * 100).toFixed(2)}%`]
         ];
-        defectPanel = detailMetricPanel('Defect detection', buildCompactMetricTable(defectRows));
+        defectPanel = detailMetricPanel(t('panel_defect'), buildCompactMetricTable(defectRows));
 
         const coverage = details.advanced.code_coverage || {};
         const coverageRows = [
-            ['Code coverage', `${(coverage.code_coverage_percent || 0).toFixed(2)}%`],
-            ['Files analyzed', coverage.files_analyzed ?? 0],
-            ['Lines analyzed', coverage.lines_analyzed ?? 0]
+            [t('m_code_coverage'), `${(coverage.code_coverage_percent || 0).toFixed(2)}%`],
+            [t('m_files_analyzed'), coverage.files_analyzed ?? 0],
+            [t('m_lines_analyzed'), coverage.lines_analyzed ?? 0]
         ];
-        coveragePanel = detailMetricPanel('Code coverage', buildCompactMetricTable(coverageRows));
+        coveragePanel = detailMetricPanel(t('panel_coverage'), buildCompactMetricTable(coverageRows));
 
         const efficiency = details.advanced.operational_efficiency || {};
         const opsRows = [
-            ['Average scan time', `${(efficiency.average_scan_time || 0).toFixed(2)}s`],
-            ['CPU usage', `${(efficiency.cpu_usage_percent || 0).toFixed(2)}%`],
-            ['Memory usage', `${(efficiency.memory_usage_mb !== undefined ? efficiency.memory_usage_mb : 0).toFixed(2)} MB`]
+            [t('m_avg_scan_time'), `${(efficiency.average_scan_time || 0).toFixed(2)}s`],
+            [t('m_cpu_usage'), `${(efficiency.cpu_usage_percent || 0).toFixed(2)}%`],
+            [t('m_memory_usage'), `${(efficiency.memory_usage_mb !== undefined ? efficiency.memory_usage_mb : 0).toFixed(2)} MB`]
         ];
         if (details.advanced.code_quality_score !== null && details.advanced.code_quality_score !== undefined) {
-            opsRows.push(['Code quality score', details.advanced.code_quality_score.toFixed(2)]);
+            opsRows.push([t('m_code_quality'), details.advanced.code_quality_score.toFixed(2)]);
         }
-        opsPanel = detailMetricPanel('Operations & quality', buildCompactMetricTable(opsRows));
+        opsPanel = detailMetricPanel(t('panel_ops'), buildCompactMetricTable(opsRows));
     } else {
         const emptyMsg =
-            '<p class="detail-metric-panel__empty">Advanced metrics not computed. Ground truth is required for precision, recall, and F1.</p>';
-        defectPanel = detailMetricPanel('Defect detection', emptyMsg, true);
-        coveragePanel = detailMetricPanel('Code coverage', '<p class="detail-metric-panel__empty">N/A</p>', true);
-        opsPanel = detailMetricPanel('Operations & quality', '<p class="detail-metric-panel__empty">N/A</p>', true);
+            `<p class="detail-metric-panel__empty">${t('empty_advanced')}</p>`;
+        defectPanel = detailMetricPanel(t('panel_defect'), emptyMsg, true);
+        coveragePanel = detailMetricPanel(t('panel_coverage'), `<p class="detail-metric-panel__empty">${t('empty_na')}</p>`, true);
+        opsPanel = detailMetricPanel(t('panel_ops'), `<p class="detail-metric-panel__empty">${t('empty_na')}</p>`, true);
     }
 
     const html = `<div class="details-content"><div class="details-metrics-grid">${corePanel}${defectPanel}${coveragePanel}${opsPanel}</div></div>`;

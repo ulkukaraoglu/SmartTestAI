@@ -17,7 +17,7 @@ import requests
 import json
 
 # DeepSource API yapılandırması
-TOKEN = "dsp_144b578a44fdc5553b0fe6ff5a52b00c8752"
+TOKEN = "dsp_811fcbb6a997091c53d428ed24b15a6133ac"
 API_URL = "https://api.deepsource.io/graphql/"
 
 headers = {
@@ -137,4 +137,3 @@ query3 = {
 r3 = requests.post(API_URL, headers=headers, json=query3)
 print(f"Status: {r3.status_code}")
 print(f"Response: {json.dumps(r3.json(), indent=2)}")
-

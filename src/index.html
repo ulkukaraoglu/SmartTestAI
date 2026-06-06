@@ -10,18 +10,23 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="lang-switcher" id="langSwitcher">
+        <button type="button" class="lang-btn" data-lang="tr">TR</button>
+        <button type="button" class="lang-btn" data-lang="en">EN</button>
+    </div>
+
     <div class="container">
         <header>
             <h1>🔍 SmartTestAI</h1>
-            <p class="subtitle">Compare AI-Powered Code Analysis Tools</p>
+            <p class="subtitle" data-i18n="subtitle">Compare AI-Powered Code Analysis Tools</p>
         </header>
 
         <main>
             <!-- File upload -->
             <section class="upload-section" id="uploadSection">
                 <div class="upload-card">
-                    <h2>📁 Upload Files</h2>
-                    <p>Upload the Python file to analyze (or a ZIP archive)</p>
+                    <h2 data-i18n="upload_title">📁 Upload Files</h2>
+                    <p data-i18n="upload_desc">Upload the Python file to analyze (or a ZIP archive)</p>
                     
                     <div class="upload-area" id="uploadArea">
                         <input type="file" id="fileInput" accept=".py,.zip,.txt,.js,.java,.cpp,.c,.go,.rs" style="display: none;" multiple>
@@ -31,23 +36,23 @@
                                 <polyline points="17 8 12 3 7 8"></polyline>
                                 <line x1="12" y1="3" x2="12" y2="15"></line>
                             </svg>
-                            <p><strong>Drag files here</strong> or click to browse</p>
-                            <p class="file-info">Supported formats: .py, .js, .java, .cpp, .c, .go, .rs, .txt, .zip</p>
+                            <p data-i18n-html="upload_drag"><strong>Drag files here</strong> or click to browse</p>
+                            <p class="file-info" data-i18n="upload_formats">Supported formats: .py, .js, .java, .cpp, .c, .go, .rs, .txt, .zip</p>
                         </div>
                         <div class="upload-progress" id="uploadProgress" style="display: none;">
                             <div class="progress-bar">
                                 <div class="progress-fill" id="progressFill"></div>
                             </div>
-                            <p id="progressText">Uploading...</p>
+                            <p id="progressText" data-i18n="uploading">Uploading...</p>
                         </div>
                     </div>
 
                     <div class="file-list" id="fileList" style="display: none;">
-                        <h3>Uploaded files:</h3>
+                        <h3 data-i18n="uploaded_files">Uploaded files:</h3>
                         <ul id="fileListItems"></ul>
                     </div>
 
-                    <button class="btn btn-primary" id="scanButton" disabled>
+                    <button class="btn btn-primary" id="scanButton" data-i18n="start_scan" disabled>
                         🔍 Start scan
                     </button>
                 </div>
@@ -55,28 +60,28 @@
 
             <!-- Scan results -->
             <section class="results-section" id="resultsSection" style="display: none;">
-                <h2>📊 Scan results</h2>
+                <h2 data-i18n="results_title">📊 Scan results</h2>
                 
                 <!-- Loading State -->
                 <div class="loading-state" id="loadingState">
                     <div class="spinner"></div>
-                    <p>Scanning... This may take a few minutes.</p>
+                    <p data-i18n="scanning">Scanning... This may take a few minutes.</p>
                     <div class="scan-progress">
                         <div class="scan-step" id="step1">
                             <span class="step-icon">⏳</span>
-                            <span>Uploading files...</span>
+                            <span data-i18n="step1">Uploading files...</span>
                         </div>
                         <div class="scan-step" id="step2">
                             <span class="step-icon">⏳</span>
-                            <span>Snyk Code scan...</span>
+                            <span data-i18n="step2">Snyk Code scan...</span>
                         </div>
                         <div class="scan-step" id="step3">
                             <span class="step-icon">⏳</span>
-                            <span>DeepSource scan...</span>
+                            <span data-i18n="step3">DeepSource scan...</span>
                         </div>
                         <div class="scan-step" id="step4">
                             <span class="step-icon">⏳</span>
-                            <span>Preparing results...</span>
+                            <span data-i18n="step4">Preparing results...</span>
                         </div>
                     </div>
                 </div>
@@ -88,61 +93,61 @@
                         <div class="comparison-card snyk-card">
                             <div class="card-header">
                                 <h3>🛡️ Snyk Code</h3>
-                                <span class="status-badge" id="snykStatus">Success</span>
+                                <span class="status-badge" id="snykStatus" data-i18n="status_success">Success</span>
                             </div>
                             <div class="metrics-grid">
                                 <div class="metric-item critical">
-                                    <span class="metric-label">Critical</span>
+                                    <span class="metric-label" data-i18n="critical">Critical</span>
                                     <span class="metric-value" id="snykCritical">0</span>
                                 </div>
                                 <div class="metric-item high">
-                                    <span class="metric-label">High</span>
+                                    <span class="metric-label" data-i18n="high">High</span>
                                     <span class="metric-value" id="snykHigh">0</span>
                                 </div>
                                 <div class="metric-item medium">
-                                    <span class="metric-label">Medium</span>
+                                    <span class="metric-label" data-i18n="medium">Medium</span>
                                     <span class="metric-value" id="snykMedium">0</span>
                                 </div>
                                 <div class="metric-item low">
-                                    <span class="metric-label">Low</span>
+                                    <span class="metric-label" data-i18n="low">Low</span>
                                     <span class="metric-value" id="snykLow">0</span>
                                 </div>
                             </div>
                             <div class="metric-summary">
-                                <p><strong>Total issues:</strong> <span id="snykTotal">0</span></p>
-                                <p><strong>Scan duration:</strong> <span id="snykDuration">0.0s</span></p>
+                                <p><strong data-i18n="total_issues_label">Total issues:</strong> <span id="snykTotal">0</span></p>
+                                <p><strong data-i18n="scan_duration_label">Scan duration:</strong> <span id="snykDuration">0.0s</span></p>
                             </div>
-                            <button class="btn btn-secondary btn-sm" onclick="showDetails('snyk')">Show details</button>
+                            <button class="btn btn-secondary btn-sm" data-i18n="show_details" onclick="showDetails('snyk')">Show details</button>
                         </div>
 
                         <div class="comparison-card deepsource-card">
                             <div class="card-header">
                                 <h3>🤖 DeepSource</h3>
-                                <span class="status-badge" id="deepsourceStatus">Success</span>
+                                <span class="status-badge" id="deepsourceStatus" data-i18n="status_success">Success</span>
                             </div>
                             <div class="metrics-grid">
                                 <div class="metric-item critical">
-                                    <span class="metric-label">Critical</span>
+                                    <span class="metric-label" data-i18n="critical">Critical</span>
                                     <span class="metric-value" id="deepsourceCritical">0</span>
                                 </div>
                                 <div class="metric-item high">
-                                    <span class="metric-label">High</span>
+                                    <span class="metric-label" data-i18n="high">High</span>
                                     <span class="metric-value" id="deepsourceHigh">0</span>
                                 </div>
                                 <div class="metric-item medium">
-                                    <span class="metric-label">Medium</span>
+                                    <span class="metric-label" data-i18n="medium">Medium</span>
                                     <span class="metric-value" id="deepsourceMedium">0</span>
                                 </div>
                                 <div class="metric-item low">
-                                    <span class="metric-label">Low</span>
+                                    <span class="metric-label" data-i18n="low">Low</span>
                                     <span class="metric-value" id="deepsourceLow">0</span>
                                 </div>
                             </div>
                             <div class="metric-summary">
-                                <p><strong>Total issues:</strong> <span id="deepsourceTotal">0</span></p>
-                                <p><strong>Scan duration:</strong> <span id="deepsourceDuration">0.0s</span></p>
+                                <p><strong data-i18n="total_issues_label">Total issues:</strong> <span id="deepsourceTotal">0</span></p>
+                                <p><strong data-i18n="scan_duration_label">Scan duration:</strong> <span id="deepsourceDuration">0.0s</span></p>
                             </div>
-                            <button class="btn btn-secondary btn-sm" onclick="showDetails('deepsource')">Show details</button>
+                            <button class="btn btn-secondary btn-sm" data-i18n="show_details" onclick="showDetails('deepsource')">Show details</button>
                         </div>
                     </div>
 
@@ -150,7 +155,7 @@
                     <div class="modal" id="detailsModal">
                         <div class="modal-content modal-content--details">
                             <div class="modal-header">
-                                <h2 id="modalTitle">Detailed results</h2>
+                                <h2 id="modalTitle" data-i18n="detailed_results">Detailed results</h2>
                                 <span class="close" onclick="closeModal()" aria-label="Close">&times;</span>
                             </div>
                             <div id="modalBody" class="modal-body"></div>
@@ -161,15 +166,15 @@
                 <!-- Error State -->
                 <div class="error-state" id="errorState" style="display: none;">
                     <div class="error-icon">❌</div>
-                    <h3>Something went wrong</h3>
+                    <h3 data-i18n="error_title">Something went wrong</h3>
                     <p id="errorMessage"></p>
-                    <button class="btn btn-primary" onclick="resetScan()">Try again</button>
+                    <button class="btn btn-primary" data-i18n="try_again" onclick="resetScan()">Try again</button>
                 </div>
             </section>
         </main>
 
         <footer>
-            <p>SmartTestAI — AI code analysis tools benchmark</p>
+            <p data-i18n="footer">SmartTestAI — AI code analysis tools benchmark</p>
         </footer>
     </div>
 
