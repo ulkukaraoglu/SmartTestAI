@@ -3,8 +3,3 @@ version = 1
 [[analyzers]]
 name = "python"
 enabled = true
-
-# DeepSource status check'i blocking issues olmasa bile geçsin
-# Not: Bu sadece geçici bir çözümdür. Issues'ları düzeltmek daha iyidir.
-[analyzers.meta]
-fail_on_errors = false
