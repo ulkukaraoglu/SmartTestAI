@@ -2,138 +2,127 @@
 """
 DeepSource API Test Script
 
-Bu script, DeepSource GraphQL API'sini test eder ve
-repository issues'larını alır.
+Bu script, DeepSource GraphQL API'sine bağlanıp repository bilgisini ve
+issue listesini çeker. Hızlı bir bağlantı/doğrulama (smoke test) aracıdır.
+
+Güvenlik: API token ve repo bilgileri ASLA koda gömülmez; environment
+variable'lardan okunur (deepsource_runner.py ile aynı değişkenler).
 
 Kullanım:
+    # Önce gerekli değişkenleri ayarla (PowerShell örneği):
+    #   $env:DEEPSOURCE_API_TOKEN="<token>"
+    #   $env:DEEPSOURCE_REPO_OWNER="<owner>"
+    #   $env:DEEPSOURCE_REPO_NAME="SmartTestAI"
+    #   $env:DEEPSOURCE_VCS_PROVIDER="GITHUB"
+
     cd backend/tests
     python test_deepsource_api.py
-    
+
     veya backend/ klasöründen:
     python -m tests.test_deepsource_api
 """
 
-import requests
 import json
+import os
+import sys
 
-# DeepSource API yapılandırması
-TOKEN = "dsp_811fcbb6a997091c53d428ed24b15a6133ac"
-API_URL = "https://api.deepsource.io/graphql/"
+import requests
+
+# ============================================
+# YAPILANDIRMA (environment variable'lardan)
+# ============================================
+TOKEN = os.getenv("DEEPSOURCE_API_TOKEN", "")
+API_URL = os.getenv("DEEPSOURCE_API_URL", "https://api.deepsource.com/graphql/")
+REPO_OWNER = os.getenv("DEEPSOURCE_REPO_OWNER", "")
+REPO_NAME = os.getenv("DEEPSOURCE_REPO_NAME", "SmartTestAI")
+VCS_PROVIDER = os.getenv("DEEPSOURCE_VCS_PROVIDER", "GITHUB")
+
+if not TOKEN:
+    print("HATA: DEEPSOURCE_API_TOKEN ayarli degil. Once token'i environment'a ekleyin.")
+    sys.exit(1)
+if not REPO_OWNER:
+    print("HATA: DEEPSOURCE_REPO_OWNER ayarli degil. Repo sahibini environment'a ekleyin.")
+    sys.exit(1)
 
 headers = {
     "Authorization": f"Bearer {TOKEN}",
-    "Content-Type": "application/json"
+    "Content-Type": "application/json",
 }
 
-# Test 0: Introspection - Repository type'ını öğren
-print("=== Test 0: Introspection ===")
-query0 = {
-    "query": """
-    query {
-        __type(name: "Query") {
-            fields {
-                name
-                args {
-                    name
-                    type {
-                        name
-                        kind
-                    }
-                }
-            }
-        }
-    }
-    """
-}
-r0 = requests.post(API_URL, headers=headers, json=query0)
-print(f"Status: {r0.status_code}")
-if r0.status_code == 200:
-    print(f"Response: {json.dumps(r0.json(), indent=2)[:1000]}...")
+print(f"Endpoint : {API_URL}")
+print(f"Repo     : {REPO_OWNER}/{REPO_NAME} ({VCS_PROVIDER})")
+print(f"Token    : {TOKEN[:8]}... (gizlendi)")
 print()
 
-# Test 1: Repository bilgilerini al (doğru format)
+
+def run_query(query: str) -> dict:
+    """GraphQL sorgusu gönderir ve JSON yanıtını döndürür."""
+    resp = requests.post(API_URL, headers=headers, json={"query": query}, timeout=60)
+    print(f"Status: {resp.status_code}")
+    try:
+        return resp.json()
+    except ValueError:
+        print(f"Gecersiz yanit: {resp.text[:500]}")
+        return {}
+
+
+# ============================================
+# Test 1: Repository bilgisi
+# ============================================
 print("=== Test 1: Repository Info ===")
-query1 = {
-    "query": """
+data1 = run_query(
+    """
     query {
-        repository(login: "elif1624", name: "kalite", vcsProvider: GITHUB) {
+        repository(login: "%s", name: "%s", vcsProvider: %s) {
             name
             defaultBranch
             isActivated
+            latestCommitOid
         }
     }
-    """
-}
-r1 = requests.post(API_URL, headers=headers, json=query1)
-print(f"Status: {r1.status_code}")
-print(f"Response: {json.dumps(r1.json(), indent=2)}")
+    """ % (REPO_OWNER, REPO_NAME, VCS_PROVIDER)
+)
+print(json.dumps(data1, indent=2, ensure_ascii=False))
 print()
 
-# Test 2a: Issue type'ını öğren
-print("=== Test 2a: Issue Type Introspection ===")
-query2a = {
-    "query": """
-    query {
-        __type(name: "RepositoryIssue") {
-            fields {
-                name
-                type {
-                    name
-                    kind
-                }
-            }
-        }
-    }
+# ============================================
+# Test 2: Issue listesi (ilk 10)
+# ============================================
+print("=== Test 2: Issues List ===")
+data2 = run_query(
     """
-}
-r2a = requests.post(API_URL, headers=headers, json=query2a)
-print(f"Status: {r2a.status_code}")
-if r2a.status_code == 200:
-    print(f"Response: {json.dumps(r2a.json(), indent=2)}")
-print()
-
-# Test 2b: Issues listesi
-print("=== Test 2b: Issues List ===")
-query2b = {
-    "query": """
     query {
-        repository(login: "elif1624", name: "kalite", vcsProvider: GITHUB) {
+        repository(login: "%s", name: "%s", vcsProvider: %s) {
             issues(first: 10) {
                 totalCount
                 edges {
                     node {
-                        issue {
-                            shortcode
-                            title
-                            severity
-                            category
-                        }
+                        issue { shortcode title severity category }
                     }
                 }
             }
         }
     }
-    """
-}
-r2b = requests.post(API_URL, headers=headers, json=query2b)
-print(f"Status: {r2b.status_code}")
-print(f"Response: {json.dumps(r2b.json(), indent=2)}")
+    """ % (REPO_OWNER, REPO_NAME, VCS_PROVIDER)
+)
+print(json.dumps(data2, indent=2, ensure_ascii=False))
 print()
 
-# Test 3: Repository'yi bul ve issues'ları al
-print("=== Test 3: Repository Issues ===")
-query3 = {
-    "query": """
+# ============================================
+# Test 3: Son analiz çalışmaları (Yol B polling ile aynı sorgu)
+# ============================================
+print("=== Test 3: Analysis Runs ===")
+data3 = run_query(
+    """
     query {
-        repository(login: "elif1624", name: "kalite", vcsProvider: GITHUB) {
-            name
-            issues {
-                totalCount
+        repository(login: "%s", name: "%s", vcsProvider: %s) {
+            analysisRuns(first: 5) {
+                edges {
+                    node { commitOid status }
+                }
             }
         }
     }
-    """
-}
-r3 = requests.post(API_URL, headers=headers, json=query3)
-print(f"Status: {r3.status_code}")
-print(f"Response: {json.dumps(r3.json(), indent=2)}")
+    """ % (REPO_OWNER, REPO_NAME, VCS_PROVIDER)
+)
+print(json.dumps(data3, indent=2, ensure_ascii=False))
