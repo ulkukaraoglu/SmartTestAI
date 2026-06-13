@@ -29,7 +29,6 @@ API adresi: http://localhost:5001
 from flask import Flask, jsonify, send_file, request, send_from_directory
 from flask_cors import CORS
 import os
-import shutil
 import uuid
 from pathlib import Path
 from datetime import datetime
