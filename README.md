@@ -311,9 +311,9 @@ Tüm tarama sonuçları `results/` klasörüne kaydedilir:
 - `deepsource_flask_demo_2026-01-02_17-34-46.json`
 - `snyk_advanced_metrics_snyk_code_vulnerable_demo_2026-01-02_15-44-31_2026-01-02_17-26-17.json`
 
-### ⚠️ Bu klasörler artık git'te izlenmiyor
+### ⚠️ Bu klasörler git'te izlenmiyor
 
-Üretilen veriler her commit'e karışmasın diye aşağıdaki yollar `.gitignore`'a eklendi ve git takibinden çıkarıldı:
+Üretilen veriler her commit'e karışmasın diye aşağıdaki yollar `.gitignore`'a ekli:
 
 | Yol | İçerik | Neden ignore |
 |-----|--------|--------------|
@@ -325,7 +325,7 @@ Tüm tarama sonuçları `results/` klasörüne kaydedilir:
 
 - **Klasörler repoda yok ama sorun değil.** `results/` klasörü backend ilk taramada otomatik oluşturur (`mkdir(parents=True, exist_ok=True)`), elle oluşturman gerekmez.
 - **Mevcut dosyaların silinmedi.** `git rm --cached` yalnızca takibi bıraktı; diskindeki dosyalar yerinde duruyor.
-- **Yeni klonlayan biri** (örn. takım arkadaşın) bu klasörleri görmez; backend'i bir kez çalıştırınca `results/` kendiliğinden gelir.
+- **Yeni klonlayan biri** bu klasörleri görmez; backend'i bir kez çalıştırınca `results/` kendiliğinden gelir.
 - **Bir sonucu kasıtlı paylaşmak istersen** zorla ekleyebilirsin: `git add -f results/<dosya>.json`.
 - **Tekrar izlemeye almak istersen** `.gitignore`'dan ilgili satırı sil, sonra `git add` ile ekle.
 
