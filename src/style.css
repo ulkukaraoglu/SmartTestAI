@@ -580,6 +580,27 @@ main {
     border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
+/* Scan mode note (e.g. DeepSource showing live repo data vs demo/mock data) */
+.scan-mode-note {
+    margin: 0 0 12px;
+    padding: 8px 12px;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-left: 3px solid var(--warning);
+    border-radius: 8px;
+    color: var(--warning);
+    font-size: 0.76rem;
+    line-height: 1.4;
+}
+
+/* Info variant: accurate, live data from the connected repository */
+.scan-mode-note--info {
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-left: 3px solid var(--info);
+    color: var(--info);
+}
+
 /* Metrics Grid */
 .metrics-grid {
     display: grid;

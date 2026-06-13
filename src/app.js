@@ -63,7 +63,9 @@ const translations = {
         empty_advanced: 'Advanced metrics not computed. Ground truth is required for precision, recall, and F1.',
         empty_na: 'N/A',
         alert_no_files: 'Please upload at least one file first.',
-        alert_no_details: 'No detailed data available.'
+        alert_no_details: 'No detailed data available.',
+        ds_mode_repo: 'ℹ Live DeepSource data for this project (from the connected repository).',
+        ds_mode_mock: '⚠ Demo/mock data — DeepSource cannot scan uploaded files directly, so these numbers are not from your code.'
     },
     tr: {
         subtitle: 'Yapay Zeka Destekli Kod Analiz Araçlarını Karşılaştırın',
@@ -120,7 +122,9 @@ const translations = {
         empty_advanced: 'Gelişmiş metrikler hesaplanmadı. Kesinlik, duyarlılık ve F1 için ground truth gerekir.',
         empty_na: 'Yok',
         alert_no_files: 'Lütfen önce en az bir dosya yükleyin.',
-        alert_no_details: 'Detaylı veri bulunmuyor.'
+        alert_no_details: 'Detaylı veri bulunmuyor.',
+        ds_mode_repo: 'ℹ Bu proje için DeepSource canlı verisi (bağlı repodan).',
+        ds_mode_mock: '⚠ Demo/sahte veri — DeepSource yüklenen dosyaları doğrudan tarayamaz, bu sayılar kodunuzdan gelmiyor.'
     }
 };
 
@@ -466,6 +470,8 @@ function displayDeepSourceResults(result) {
     document.getElementById('deepsourceTotal').textContent = metrics.total_issues || 0;
     document.getElementById('deepsourceDuration').textContent = `${(metrics.scan_duration || 0).toFixed(2)}s`;
 
+    updateDeepSourceModeNote(result.scan_mode);
+
     window.deepsourceDetails = {
         metrics: metrics,
         advanced: advanced,
@@ -473,7 +479,43 @@ function displayDeepSourceResults(result) {
     };
 }
 
+function updateDeepSourceModeNote(scanMode) {
+    const note = document.getElementById('deepsourceModeNote');
+    if (!note) return;
+
+    // "cli" -> uploaded code scanned locally (accurate): no note needed.
+    // "repository" -> real, path-filtered data for this project (accurate): info note.
+    // "mock"/undefined -> demo data, not from the uploaded code: warning note.
+    let key = null;
+    let variant = 'warning';
+    if (scanMode === 'repository') {
+        key = 'ds_mode_repo';
+        variant = 'info';
+    } else if (scanMode === 'mock' || !scanMode) {
+        key = 'ds_mode_mock';
+        variant = 'warning';
+    }
+
+    if (key) {
+        note.dataset.i18n = key;
+        note.textContent = t(key);
+        note.className = 'scan-mode-note' + (variant === 'info' ? ' scan-mode-note--info' : '');
+        note.style.display = 'block';
+    } else {
+        note.removeAttribute('data-i18n');
+        note.textContent = '';
+        note.className = 'scan-mode-note';
+        note.style.display = 'none';
+    }
+}
+
 function displayError(tool, errorMessage) {
+    const modeNote = document.getElementById(`${tool}ModeNote`);
+    if (modeNote) {
+        modeNote.removeAttribute('data-i18n');
+        modeNote.style.display = 'none';
+    }
+
     const statusElement = document.getElementById(`${tool}Status`);
     if (statusElement) {
         statusElement.dataset.i18n = 'status_error';
@@ -621,6 +663,13 @@ function resetScan() {
     resultsSection.style.display = 'none';
     errorState.style.display = 'none';
     fileInput.value = '';
+
+    const deepsourceModeNote = document.getElementById('deepsourceModeNote');
+    if (deepsourceModeNote) {
+        deepsourceModeNote.removeAttribute('data-i18n');
+        deepsourceModeNote.textContent = '';
+        deepsourceModeNote.style.display = 'none';
+    }
     
     for (let i = 1; i <= 4; i++) {
         const step = document.getElementById(`step${i}`);

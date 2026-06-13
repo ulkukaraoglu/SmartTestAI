@@ -312,7 +312,8 @@ def scan_deepsource():
             "file_path": result["file_path"],
             "advanced_metrics_file_path": result.get("advanced_metrics_file_path"),
             "metrics": result["metric_result"],
-            "advanced_metrics": result.get("advanced_metrics", {})
+            "advanced_metrics": result.get("advanced_metrics", {}),
+            "scan_mode": result.get("scan_mode", "mock")
         }), 200
         
     except Exception as e:

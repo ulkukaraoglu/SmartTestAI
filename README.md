@@ -187,33 +187,82 @@ Detaylı API dokümantasyonu için: `backend/API_DOCUMENTATION.md`
 
 Snyk CLI'nin kurulu ve authenticate edilmiş olması gerekir:
 
-
-
 ```bash
 # Snyk CLI kurulumu
 npm install -g snyk
 
 # Authentication
 snyk auth
-
-# DeepSource API token'ı ayarlayın (opsiyonel)
-set DEEPSOURCE_API_TOKEN="your_token"  => cmd 
-$env:DEEPSOURCE_API_TOKEN="your_token" => PowerShell
+```
 
 **Not:** Organizasyon bilgileri `backend/metric_runner.py` dosyasında tanımlıdır ve tüm taramalarda otomatik kullanılır.
 
 ### DeepSource
 
-DeepSource için environment variable'ları ayarlayın:
+DeepSource **bulut tabanlı ve repository'ye bağlı** çalışır: yerelde keyfi bir klasörü taramaz. Bir Git reposunu (GitHub/GitLab/Bitbucket) DeepSource'a bağlarsınız, repo her commit'te bulutta analiz edilir ve sonuçları GraphQL API'den çekersiniz.
 
-```bash
-export DEEPSOURCE_API_TOKEN="your_api_token"
-export DEEPSOURCE_REPO_OWNER="github_username"
-export DEEPSOURCE_REPO_NAME="repository_name"
-export DEEPSOURCE_VCS_PROVIDER="GITHUB"
+> Bu projede `test_projects/` klasörü bu repoda olduğundan, repo DeepSource'a bağlıysa o projeler için **gerçek** DeepSource verisi çekilir. Web arayüzünden **yüklenen** dosyalar repoda olmadığından DeepSource onları doğrudan tarayamaz (bu durumda demo/mock veri ve uyarı gösterilir).
+
+#### 1. Önkoşul: Repoyu DeepSource'a bağla
+
+1. [https://app.deepsource.com](https://app.deepsource.com) adresine GitHub ile giriş yapın.
+2. Bu repoyu (`SmartTestAI`) DeepSource üzerinde **aktive edin** (Add repository / Activate).
+3. Repoda `.deepsource.toml` zaten mevcut (Python analyzer açık). İlk analiz, default branch'e bir commit attığınızda otomatik çalışır.
+
+#### 2. Environment variable'ları nereden alırım?
+
+| Değişken | Ne işe yarar | Nereden alınır |
+|----------|--------------|----------------|
+| `DEEPSOURCE_API_TOKEN` | GraphQL API'ye kimlik doğrulama (Personal Access Token / PAT) | DeepSource → sağ üst profil → **Settings → Access Tokens** (veya **API Access**) → **Generate / Create token**. Oluşan PAT'i kopyalayın (bir daha gösterilmez). |
+| `DEEPSOURCE_REPO_OWNER` | Bağlı reponun sahibi (GitHub kullanıcı adı veya organizasyon) | Reponun GitHub URL'sinden: `github.com/<OWNER>/<NAME>` → buradaki `<OWNER>`. |
+| `DEEPSOURCE_REPO_NAME` | Repo adı | Aynı URL'deki `<NAME>` (bu projede genellikle `SmartTestAI`). |
+| `DEEPSOURCE_VCS_PROVIDER` | Sürüm kontrol sağlayıcısı | `GITHUB`, `GITLAB` veya `BITBUCKET` (büyük harf). |
+
+#### 3. Değişkenleri ayarla ve başlat
+
+**PowerShell (Windows):**
+```powershell
+$env:DEEPSOURCE_API_TOKEN="<DeepSource Personal Access Token>"
+$env:DEEPSOURCE_REPO_OWNER="<github-kullanici-veya-org>"
+$env:DEEPSOURCE_REPO_NAME="SmartTestAI"
+$env:DEEPSOURCE_VCS_PROVIDER="GITHUB"
+cd backend
+python app.py
 ```
 
-Veya `deepsource_runner.py` dosyasında default değerleri değiştirebilirsiniz.
+**cmd (Windows):**
+```bat
+set DEEPSOURCE_API_TOKEN=<token>
+set DEEPSOURCE_REPO_OWNER=<owner>
+set DEEPSOURCE_REPO_NAME=SmartTestAI
+set DEEPSOURCE_VCS_PROVIDER=GITHUB
+cd backend
+python app.py
+```
+
+**Linux/Mac (bash):**
+```bash
+export DEEPSOURCE_API_TOKEN="<token>"
+export DEEPSOURCE_REPO_OWNER="<owner>"
+export DEEPSOURCE_REPO_NAME="SmartTestAI"
+export DEEPSOURCE_VCS_PROVIDER="GITHUB"
+cd backend
+python app.py
+```
+
+> Alternatif olarak `backend/deepsource_runner.py` içindeki default değerleri (`DEEPSOURCE_REPO_OWNER`, `DEEPSOURCE_REPO_NAME`, `DEEPSOURCE_VCS_PROVIDER`) doğrudan düzenleyebilirsiniz; ancak token'ı koda yazmayın, environment variable kullanın.
+
+#### 4. Çalışıyor mu kontrol et
+
+```bash
+curl -X POST http://localhost:5001/scan/deepsource \
+  -H "Content-Type: application/json" \
+  -d '{"project": "vulnerable_sql_injection"}'
+```
+
+Yanıtta `"scan_mode": "repository"` ve gerçek issue sayıları görüyorsanız canlı veri akıyordur. `"scan_mode": "mock"` görüyorsanız token/owner/name yanlış olabilir ya da repo o klasörü henüz analiz etmemiştir.
+
+**API endpoint:** `https://api.deepsource.com/graphql/` (eski `api.deepsource.io` değil). Gerekirse `DEEPSOURCE_API_URL` ile özelleştirilebilir.
 
 ## 📝 Sonuç Dosyaları
 

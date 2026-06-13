@@ -88,10 +88,29 @@ def extract_issues_from_deepsource_result(raw_data: dict) -> list:
         repo_data = raw_data["data"]["repository"]
         if "issues" in repo_data and "edges" in repo_data["issues"]:
             for edge in repo_data["issues"]["edges"]:
-                if "node" in edge and "issue" in edge["node"]:
-                    issue = edge["node"]["issue"]
+                node = edge.get("node", {})
+                if "issue" not in node:
+                    continue
+                issue = node["issue"]
+                # Her issue'nun gerçek dosya/satır konumlarını (occurrences) çıkar.
+                # Böylece ground truth ile dosya+satır bazında eşleştirme yapılabilir.
+                occ_edges = node.get("occurrences", {}).get("edges", [])
+                if occ_edges:
+                    for occ_edge in occ_edges:
+                        occ = occ_edge.get("node", {})
+                        file_path = occ.get("path", "")
+                        file_name = file_path.split("/")[-1] if file_path else "unknown"
+                        issues.append({
+                            "file": file_name,
+                            "line": occ.get("beginLine", -1),
+                            "type": issue.get("shortcode", ""),
+                            "severity": issue.get("severity", ""),
+                            "description": issue.get("title", "")
+                        })
+                else:
+                    # Occurrences gelmediyse (eski/temel sorgu), en azından issue'yu kaydet
                     issues.append({
-                        "file": "unknown",  # DeepSource API'sinde dosya bilgisi yok
+                        "file": "unknown",
                         "line": -1,
                         "type": issue.get("shortcode", ""),
                         "severity": issue.get("severity", ""),
@@ -182,6 +201,28 @@ def save_advanced_metrics_result(
     
     return str(file_path)
 
+def _tag_scan_mode(data: dict, mode: str) -> dict:
+    """
+    Tarama sonucuna, sonucun kaynağını belirten bir mod etiketi ekler.
+
+    Mod değerleri:
+    - "cli":        DeepSource CLI ile yüklenen kod yerelde tarandı (gerçek/doğru)
+    - "repository": Gerçek GraphQL API; sonuçlar yapılandırılmış repo geneline aittir
+                    (yüklenen dosyalara özel DEĞİL)
+    - "mock":       DeepSource bağlı değil; demo/sahte veri döndürülüyor
+
+    Args:
+        data: Tarama ham çıktısı
+        mode: Mod etiketi
+
+    Returns:
+        dict: Etiketlenmiş ham çıktı
+    """
+    if isinstance(data, dict):
+        data["_deepsource_scan_mode"] = mode
+    return data
+
+
 def _get_mock_deepsource_output(target_path: str) -> dict:
     """
     Test için mock DeepSource çıktısı döner.
@@ -226,7 +267,8 @@ def _get_mock_deepsource_output(target_path: str) -> dict:
 DEEPSOURCE_API_TOKEN = os.getenv("DEEPSOURCE_API_TOKEN", "")
 
 # DeepSource GraphQL API endpoint
-DEEPSOURCE_API_URL = os.getenv("DEEPSOURCE_API_URL", "https://api.deepsource.io/graphql/")
+# Not: Güncel resmi domain api.deepsource.com'dur (eski api.deepsource.io yerine).
+DEEPSOURCE_API_URL = os.getenv("DEEPSOURCE_API_URL", "https://api.deepsource.com/graphql/")
 
 # DeepSource CLI yolu (eğer CLI kuruluysa)
 DEEPSOURCE_CLI_PATH = os.getenv("DEEPSOURCE_CLI_PATH", "deepsource")
@@ -244,7 +286,7 @@ else:
     print(f"INFO: DeepSource API token bulundu (ilk 10 karakter: {DEEPSOURCE_API_TOKEN[:10]}...)")
 print(f"INFO: Repository: {DEEPSOURCE_REPO_OWNER}/{DEEPSOURCE_REPO_NAME}")
 
-def run_deepsource_scan(target_path: str) -> dict:
+def run_deepsource_scan(target_path: str, repo_path: str = None) -> dict:
     """
     DeepSource taraması yapar ve JSON çıktısı döner.
     
@@ -253,10 +295,15 @@ def run_deepsource_scan(target_path: str) -> dict:
     
     1. CLI yöntemi: DeepSource CLI kuruluysa kullanılır
     2. GraphQL API: DeepSource GraphQL API ile repository issues alınır
-    3. Mock modu: Test için mock veri döner
+       (repo_path verilirse, sadece o klasördeki issue'lar dosya/satır
+       bilgisiyle birlikte çekilir -> ground truth ile eşleştirilebilir)
+    3. Mock modu: repo_path yoksa (ör. yüklenen dosya repoda değil) veya
+       API çağrısı başarısız olursa mock veri döner
     
     Args:
-        target_path: Taranacak proje yolu (CLI için kullanılır, API için kullanılmaz)
+        target_path: Taranacak proje yolu (CLI için kullanılır)
+        repo_path: Bağlı repo içindeki klasör yolu (ör. "test_projects/flask_demo/").
+                   None ise gerçek API atlanır ve mock'a düşülür (kod repoda olmadığından).
     
     Returns:
         dict: DeepSource'un JSON çıktısı (GraphQL response formatı)
@@ -278,11 +325,12 @@ def run_deepsource_scan(target_path: str) -> dict:
         )
         
         if result.returncode == 0 and result.stdout:
-            return json.loads(result.stdout)
+            # CLI yerelde yüklenen kodu taradı -> sonuç doğru/yüklenen koda özel
+            return _tag_scan_mode(json.loads(result.stdout), "cli")
         elif result.stdout:
             # Bazı durumlarda hata olsa bile stdout'ta JSON olabilir
             try:
-                return json.loads(result.stdout)
+                return _tag_scan_mode(json.loads(result.stdout), "cli")
             except json.JSONDecodeError:
                 raise RuntimeError(f"DeepSource CLI error: {result.stderr}")
         else:
@@ -297,8 +345,10 @@ def run_deepsource_scan(target_path: str) -> dict:
     # ============================================
     # YÖNTEM 2: DeepSource GraphQL API kullanımı
     # ============================================
-    # DeepSource repository-based çalışır, bu yüzden GitHub repository bilgisi kullanılır
-    if DEEPSOURCE_API_TOKEN:
+    # DeepSource repository-based çalışır, bu yüzden GitHub repository bilgisi kullanılır.
+    # repo_path verildiyse (sabit test_projects), o klasöre özel gerçek veri çekilir.
+    # repo_path None ise (yüklenen dosya repoda değil) gerçek API atlanır -> mock.
+    if DEEPSOURCE_API_TOKEN and repo_path:
         try:
             # API isteği için header'ları hazırla
             headers = {
@@ -307,13 +357,14 @@ def run_deepsource_scan(target_path: str) -> dict:
             }
             
             # GraphQL query: Repository issues'ları al
-            # first: 100 - İlk 100 issue'yu al (pagination için daha fazla gerekebilir)
+            # path: Sadece bu klasördeki occurrence'lara sahip issue'ları getirir
+            # occurrences: Her issue'nun gerçek dosya/satır konumları (ground truth eşleştirmesi için)
             query = {
                 "query": """
                 query {
                     repository(login: "%s", name: "%s", vcsProvider: %s) {
                         name
-                        issues(first: 100) {
+                        issues(first: 100, path: "%s") {
                             totalCount
                             edges {
                                 node {
@@ -323,12 +374,21 @@ def run_deepsource_scan(target_path: str) -> dict:
                                         severity
                                         category
                                     }
+                                    occurrences(first: 50) {
+                                        edges {
+                                            node {
+                                                path
+                                                beginLine
+                                                endLine
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
-                """ % (DEEPSOURCE_REPO_OWNER, DEEPSOURCE_REPO_NAME, DEEPSOURCE_VCS_PROVIDER)
+                """ % (DEEPSOURCE_REPO_OWNER, DEEPSOURCE_REPO_NAME, DEEPSOURCE_VCS_PROVIDER, repo_path)
             }
             
             # GraphQL API'ye POST isteği gönder
@@ -346,7 +406,7 @@ def run_deepsource_scan(target_path: str) -> dict:
                     error_msg = f"DeepSource GraphQL error: {result['errors']}"
                     print(f"WARNING: {error_msg}")
                     # Hata olsa bile mock moda geçmek yerine boş sonuç döndür
-                    return {
+                    return _tag_scan_mode({
                         "data": {
                             "repository": {
                                 "name": DEEPSOURCE_REPO_NAME,
@@ -356,32 +416,33 @@ def run_deepsource_scan(target_path: str) -> dict:
                                 }
                             }
                         }
-                    }
+                    }, "repository")
                 # Başarılı - boş sonuç da geçerli (repository'de issue yok)
-                return result
+                # NOT: Sonuçlar yapılandırılmış repo geneline aittir, yüklenen koda özel DEĞİL
+                return _tag_scan_mode(result, "repository")
             else:
                 error_msg = f"DeepSource API error: {response.status_code} - {response.text}"
                 print(f"WARNING: {error_msg}")
                 # API hatası - mock moda geç
-                return _get_mock_deepsource_output(target_path)
+                return _tag_scan_mode(_get_mock_deepsource_output(target_path), "mock")
         
         except requests.exceptions.RequestException as e:
             error_msg = f"DeepSource API request failed: {str(e)}"
             print(f"WARNING: {error_msg}")
             # Network hatası - mock moda geç
-            return _get_mock_deepsource_output(target_path)
+            return _tag_scan_mode(_get_mock_deepsource_output(target_path), "mock")
         except Exception as e:
             error_msg = f"DeepSource API unexpected error: {str(e)}"
             print(f"WARNING: {error_msg}")
             # Beklenmeyen hata - mock moda geç
-            return _get_mock_deepsource_output(target_path)
+            return _tag_scan_mode(_get_mock_deepsource_output(target_path), "mock")
     
     # ============================================
     # YÖNTEM 3: Mock/Test verisi
     # ============================================
     # API token yoksa veya tüm yöntemler başarısız olduysa mock moda geç
     print("WARNING: DeepSource API token bulunamadi veya API cagrisi basarisiz. Test modu kullaniliyor...")
-    return _get_mock_deepsource_output(target_path)
+    return _tag_scan_mode(_get_mock_deepsource_output(target_path), "mock")
 
 
 def save_scan_result(raw_output: dict, tool_name: str, project_name: str) -> str:
@@ -434,9 +495,16 @@ def run_deepsource_scan_and_save(project_name: str) -> dict:
     try:
         # Proje yolunu oluştur (uploaded klasörü de kontrol et)
         target_path = f"../test_projects/{project_name}"
+        is_uploaded = False
         if not Path(target_path).exists():
             # Uploaded klasöründe olabilir
             target_path = f"../test_projects/uploaded/{project_name}"
+            is_uploaded = True
+        
+        # Bağlı repo içindeki klasör yolunu belirle.
+        # Sabit test_projects bağlı repoda olduğundan gerçek (path-filtreli) veri çekilebilir.
+        # Yüklenen projeler repoda olmadığından gerçek API atlanır (mock'a düşer).
+        repo_path = None if is_uploaded else f"test_projects/{project_name}/"
         
         # Proje var mı kontrol et
         if not Path(target_path).exists():
@@ -449,8 +517,12 @@ def run_deepsource_scan_and_save(project_name: str) -> dict:
         # Tarama süresini ölç (gerçek süre)
         scan_start_time = time.time()
         
-        # Tarama yap
-        raw_output = run_deepsource_scan(target_path)
+        # Tarama yap (repo_path ile sabit projeler için gerçek/projeye özel veri çekilir)
+        raw_output = run_deepsource_scan(target_path, repo_path=repo_path)
+        
+        # Tarama modunu çıkar (ham çıktıyı kirletmemek için kaydetmeden önce pop et)
+        # "cli" -> yüklenen kod yerelde tarandı, "repository" -> repo geneli, "mock" -> demo veri
+        scan_mode = raw_output.pop("_deepsource_scan_mode", "mock") if isinstance(raw_output, dict) else "mock"
         
         # Gerçek tarama süresini hesapla
         actual_scan_duration = time.time() - scan_start_time
@@ -545,7 +617,8 @@ def run_deepsource_scan_and_save(project_name: str) -> dict:
             "file_path": saved_path,
             "advanced_metrics_file_path": advanced_file_path,
             "metric_result": metric_dict,
-            "advanced_metrics": advanced_metrics_dict
+            "advanced_metrics": advanced_metrics_dict,
+            "scan_mode": scan_mode
         }
         
     except Exception as e:
