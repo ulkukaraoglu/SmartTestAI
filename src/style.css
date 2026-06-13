@@ -246,6 +246,59 @@ main {
     border: 2px dashed var(--accent-primary);
 }
 
+/* Built-in test projects */
+.builtin-card {
+    margin-top: 16px;
+    padding: 16px 18px;
+    background: var(--bg-tertiary);
+    border: 1px solid rgba(99, 102, 241, 0.15);
+    border-radius: 12px;
+    text-align: center;
+}
+
+.builtin-divider {
+    position: relative;
+    margin-bottom: 10px;
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.builtin-desc {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-bottom: 12px;
+}
+
+.builtin-row {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.builtin-select {
+    flex: 1;
+    min-width: 200px;
+    max-width: 360px;
+    padding: 10px 12px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.builtin-select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
 /* File List */
 .file-list {
     margin: 14px 0;
@@ -578,6 +631,12 @@ main {
     background: rgba(239, 68, 68, 0.2);
     color: var(--error);
     border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.status-badge.na {
+    background: rgba(148, 163, 184, 0.15);
+    color: var(--text-secondary);
+    border: 1px solid rgba(148, 163, 184, 0.3);
 }
 
 /* Scan mode note (e.g. DeepSource showing live repo data vs demo/mock data) */

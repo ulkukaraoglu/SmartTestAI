@@ -17,11 +17,15 @@ const translations = {
         uploading: 'Uploading...',
         uploaded_files: 'Uploaded files:',
         start_scan: '🔍 Start scan',
+        or_builtin: 'or pick a built-in test project',
+        builtin_desc: 'These projects live in the connected repository, so DeepSource returns real results for them.',
+        scan_selected: '🔍 Scan selected',
+        alert_no_project: 'Please select a test project first.',
         results_title: '📊 Scan results',
         scanning: 'Scanning... This may take a few minutes.',
         step1: 'Uploading files...',
         step2: 'Snyk Code scan...',
-        step3: 'DeepSource scan...',
+        step3: 'DeepSource scan (uploaded code may take a few minutes)...',
         step4: 'Preparing results...',
         status_success: 'Success',
         status_error: 'Error',
@@ -65,7 +69,15 @@ const translations = {
         alert_no_files: 'Please upload at least one file first.',
         alert_no_details: 'No detailed data available.',
         ds_mode_repo: 'ℹ Live DeepSource data for this project (from the connected repository).',
-        ds_mode_mock: '⚠ Demo/mock data — DeepSource cannot scan uploaded files directly, so these numbers are not from your code.'
+        ds_mode_repo_temp: 'ℹ Live DeepSource data — your uploaded code was temporarily pushed to the connected repo, analyzed, then removed.',
+        ds_mode_repo_cached: 'ℹ Live DeepSource data (cached from a previous scan of identical files).',
+        status_na: 'N/A',
+        ds_unavailable_uploaded: '⚠ DeepSource only analyzes code in the connected repository, so uploaded files cannot be scanned. Use a built-in test project for a real comparison.',
+        ds_unavailable_no_token: '⚠ DeepSource is not configured (API token missing), so real results are unavailable.',
+        ds_unavailable_no_github: '⚠ A GitHub write token is not configured, so uploaded code can\'t be temporarily pushed for a real DeepSource scan.',
+        ds_unavailable_push: '⚠ Could not push the uploaded code to the repository for scanning. Please try again.',
+        ds_unavailable_run_timeout: '⚠ DeepSource analysis did not finish in time. Please try again in a moment.',
+        ds_unavailable_error: '⚠ Could not get a response from DeepSource. Please try again.'
     },
     tr: {
         subtitle: 'Yapay Zeka Destekli Kod Analiz Araçlarını Karşılaştırın',
@@ -76,11 +88,15 @@ const translations = {
         uploading: 'Yükleniyor...',
         uploaded_files: 'Yüklenen dosyalar:',
         start_scan: '🔍 Taramayı başlat',
+        or_builtin: 'ya da hazır bir test projesi seçin',
+        builtin_desc: 'Bu projeler bağlı repoda bulunur; bu yüzden DeepSource onlar için gerçek sonuç döndürür.',
+        scan_selected: '🔍 Seçileni tara',
+        alert_no_project: 'Lütfen önce bir test projesi seçin.',
         results_title: '📊 Tarama sonuçları',
         scanning: 'Taranıyor... Bu birkaç dakika sürebilir.',
         step1: 'Dosyalar yükleniyor...',
         step2: 'Snyk Code taraması...',
-        step3: 'DeepSource taraması...',
+        step3: 'DeepSource taraması (yüklenen kod birkaç dakika sürebilir)...',
         step4: 'Sonuçlar hazırlanıyor...',
         status_success: 'Başarılı',
         status_error: 'Hata',
@@ -124,7 +140,15 @@ const translations = {
         alert_no_files: 'Lütfen önce en az bir dosya yükleyin.',
         alert_no_details: 'Detaylı veri bulunmuyor.',
         ds_mode_repo: 'ℹ Bu proje için DeepSource canlı verisi (bağlı repodan).',
-        ds_mode_mock: '⚠ Demo/sahte veri — DeepSource yüklenen dosyaları doğrudan tarayamaz, bu sayılar kodunuzdan gelmiyor.'
+        ds_mode_repo_temp: 'ℹ DeepSource canlı verisi — yüklediğiniz kod bağlı repoya geçici olarak gönderildi, analiz edildi ve sonra silindi.',
+        ds_mode_repo_cached: 'ℹ DeepSource canlı verisi (aynı dosyaların önceki taramasından önbellekten).',
+        status_na: 'Yok',
+        ds_unavailable_uploaded: '⚠ DeepSource yalnızca bağlı repodaki kodu analiz eder; yüklenen dosyalar taranamaz. Gerçek kıyas için hazır bir test projesi kullanın.',
+        ds_unavailable_no_token: '⚠ DeepSource yapılandırılmamış (API token yok); gerçek sonuç alınamıyor.',
+        ds_unavailable_no_github: '⚠ GitHub yazma token\'ı ayarlı değil; yüklenen kod gerçek DeepSource taraması için repoya geçici olarak gönderilemiyor.',
+        ds_unavailable_push: '⚠ Yüklenen kod tarama için repoya gönderilemedi. Lütfen tekrar deneyin.',
+        ds_unavailable_run_timeout: '⚠ DeepSource analizi zamanında tamamlanmadı. Lütfen birazdan tekrar deneyin.',
+        ds_unavailable_error: '⚠ DeepSource\'tan yanıt alınamadı. Lütfen tekrar deneyin.'
     }
 };
 
@@ -168,7 +192,28 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang')));
     });
     applyTranslations();
+    loadBuiltinProjects();
 });
+
+// Bağlı repodaki hazır test projelerini doldur (uploaded_* hariç)
+async function loadBuiltinProjects() {
+    const sel = document.getElementById('builtinSelect');
+    if (!sel) return;
+    try {
+        const res = await fetch(`${API_BASE_URL}/projects`);
+        const data = await res.json();
+        const list = (data.available_projects || []).filter(p => !p.startsWith('uploaded_'));
+        sel.innerHTML = '';
+        list.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p;
+            opt.textContent = p;
+            sel.appendChild(opt);
+        });
+    } catch (e) {
+        console.error('Could not load built-in projects:', e);
+    }
+}
 
 // DOM elements
 const fileInput = document.getElementById('fileInput');
@@ -193,6 +238,11 @@ uploadArea.addEventListener('dragleave', handleDragLeave);
 uploadArea.addEventListener('drop', handleDrop);
 fileInput.addEventListener('change', handleFileSelect);
 scanButton.addEventListener('click', startScan);
+
+const builtinScanButton = document.getElementById('builtinScanButton');
+if (builtinScanButton) {
+    builtinScanButton.addEventListener('click', startBuiltinScan);
+}
 
 // Drag and drop
 function handleDragOver(e) {
@@ -251,41 +301,71 @@ function formatFileSize(bytes) {
 }
 
 // Scan flow
-async function startScan() {
-    if (uploadedFiles.length === 0) {
-        alert(t('alert_no_files'));
-        return;
-    }
-
+function beginScanUI() {
     scanButton.disabled = true;
     uploadSection.style.display = 'none';
     resultsSection.style.display = 'block';
     loadingState.style.display = 'block';
     resultsContainer.style.display = 'none';
     errorState.style.display = 'none';
+}
+
+async function runScansAndDisplay(projectName) {
+    updateScanStep(2, 'active');
+    const snykResult = await runSnykScan(projectName);
+    updateScanStep(2, 'completed');
+
+    updateScanStep(3, 'active');
+    const deepsourceResult = await runDeepSourceScan(projectName);
+    updateScanStep(3, 'completed');
+
+    updateScanStep(4, 'active');
+    scanResults = {
+        snyk: snykResult,
+        deepsource: deepsourceResult
+    };
+    updateScanStep(4, 'completed');
+
+    displayResults();
+}
+
+// Yüklenen dosyalarla tarama
+async function startScan() {
+    if (uploadedFiles.length === 0) {
+        alert(t('alert_no_files'));
+        return;
+    }
+
+    beginScanUI();
 
     try {
         updateScanStep(1, 'active');
         const projectName = await uploadFiles();
         updateScanStep(1, 'completed');
-        
-        updateScanStep(2, 'active');
-        const snykResult = await runSnykScan(projectName);
-        updateScanStep(2, 'completed');
-        
-        updateScanStep(3, 'active');
-        const deepsourceResult = await runDeepSourceScan(projectName);
-        updateScanStep(3, 'completed');
-        
-        updateScanStep(4, 'active');
-        scanResults = {
-            snyk: snykResult,
-            deepsource: deepsourceResult
-        };
-        updateScanStep(4, 'completed');
-        
-        displayResults();
-        
+
+        await runScansAndDisplay(projectName);
+    } catch (error) {
+        console.error('Scan error:', error);
+        showError(error.message || 'An error occurred during the scan.');
+    }
+}
+
+// Hazır (bağlı repodaki) test projesiyle tarama — yükleme adımı yok
+async function startBuiltinScan() {
+    const sel = document.getElementById('builtinSelect');
+    const projectName = sel && sel.value;
+    if (!projectName) {
+        alert(t('alert_no_project'));
+        return;
+    }
+
+    beginScanUI();
+
+    try {
+        // Yükleme adımı gerekmez; tamamlanmış göster
+        updateScanStep(1, 'completed');
+
+        await runScansAndDisplay(projectName);
     } catch (error) {
         console.error('Scan error:', error);
         showError(error.message || 'An error occurred during the scan.');
@@ -460,6 +540,32 @@ function displayDeepSourceResults(result) {
     console.log('DeepSource Advanced Metrics:', advanced);
 
     const deepsourceStatusEl = document.getElementById('deepsourceStatus');
+
+    // DeepSource gerçek veri döndüremediyse: sahte sayı YOK, "kullanılamıyor" durumu göster
+    const available = result.available !== false && result.scan_mode !== 'unavailable';
+    if (!available) {
+        deepsourceStatusEl.removeAttribute('data-i18n');
+        deepsourceStatusEl.textContent = t('status_na');
+        deepsourceStatusEl.className = 'status-badge na';
+
+        ['Critical', 'High', 'Medium', 'Low', 'Total'].forEach(level => {
+            const el = document.getElementById(`deepsource${level}`);
+            if (el) el.textContent = '–';
+        });
+        document.getElementById('deepsourceDuration').textContent = '–';
+
+        updateDeepSourceModeNote('unavailable', result.reason);
+
+        window.deepsourceDetails = {
+            metrics: {},
+            advanced: {},
+            rawData: result,
+            unavailable: true,
+            reason: result.reason
+        };
+        return;
+    }
+
     deepsourceStatusEl.dataset.i18n = 'status_success';
     deepsourceStatusEl.textContent = t('status_success');
     deepsourceStatusEl.className = 'status-badge success';
@@ -470,7 +576,7 @@ function displayDeepSourceResults(result) {
     document.getElementById('deepsourceTotal').textContent = metrics.total_issues || 0;
     document.getElementById('deepsourceDuration').textContent = `${(metrics.scan_duration || 0).toFixed(2)}s`;
 
-    updateDeepSourceModeNote(result.scan_mode);
+    updateDeepSourceModeNote(result.scan_mode, null);
 
     window.deepsourceDetails = {
         metrics: metrics,
@@ -479,22 +585,40 @@ function displayDeepSourceResults(result) {
     };
 }
 
-function updateDeepSourceModeNote(scanMode) {
+// DeepSource "kullanılamıyor" nedenini uygun i18n anahtarına eşler
+function unavailableReasonKey(reason) {
+    switch (reason) {
+        case 'uploaded': return 'ds_unavailable_uploaded';
+        case 'no_token': return 'ds_unavailable_no_token';
+        case 'no_github_token': return 'ds_unavailable_no_github';
+        case 'push_failed': return 'ds_unavailable_push';
+        case 'run_timeout': return 'ds_unavailable_run_timeout';
+        default: return 'ds_unavailable_error';
+    }
+}
+
+function updateDeepSourceModeNote(scanMode, reason) {
     const note = document.getElementById('deepsourceModeNote');
     if (!note) return;
 
-    // "cli" -> uploaded code scanned locally (accurate): no note needed.
-    // "repository" -> real, path-filtered data for this project (accurate): info note.
-    // "mock"/undefined -> demo data, not from the uploaded code: warning note.
+    // "cli" / "repository*" -> real, project-specific data (accurate): info note (or none).
+    // "unavailable" -> no real data; show a clear reason-specific warning (no fake numbers).
     let key = null;
     let variant = 'warning';
     if (scanMode === 'repository') {
         key = 'ds_mode_repo';
         variant = 'info';
-    } else if (scanMode === 'mock' || !scanMode) {
-        key = 'ds_mode_mock';
+    } else if (scanMode === 'repository_temp') {
+        key = 'ds_mode_repo_temp';
+        variant = 'info';
+    } else if (scanMode === 'repository_cached') {
+        key = 'ds_mode_repo_cached';
+        variant = 'info';
+    } else if (scanMode === 'unavailable') {
         variant = 'warning';
+        key = unavailableReasonKey(reason);
     }
+    // "cli" -> accurate local scan: no note.
 
     if (key) {
         note.dataset.i18n = key;
@@ -576,6 +700,14 @@ function showDetails(tool) {
 
     modalTitle.removeAttribute('data-i18n');
     modalTitle.textContent = `${tool === 'snyk' ? 'Snyk Code' : 'DeepSource'} — ${t('details_suffix')}`;
+
+    // DeepSource kullanılamıyorsa: metrik tabloları yerine açıklayıcı mesaj göster
+    if (details.unavailable) {
+        const msgKey = unavailableReasonKey(details.reason);
+        modalBody.innerHTML = `<div class="details-content">${detailMetricPanel(t('panel_defect'), `<p class="detail-metric-panel__empty">${t(msgKey)}</p>`, true)}</div>`;
+        modal.style.display = 'flex';
+        return;
+    }
 
     const m = details.metrics || {};
     const coreRows = [

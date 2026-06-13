@@ -56,6 +56,16 @@
                         🔍 Start scan
                     </button>
                 </div>
+
+                <!-- Built-in test projects (real DeepSource + Snyk comparison) -->
+                <div class="builtin-card">
+                    <p class="builtin-divider"><span data-i18n="or_builtin">or pick a built-in test project</span></p>
+                    <p class="builtin-desc" data-i18n="builtin_desc">These projects live in the connected repository, so DeepSource returns real results for them.</p>
+                    <div class="builtin-row">
+                        <select id="builtinSelect" class="builtin-select"></select>
+                        <button class="btn btn-secondary" id="builtinScanButton" data-i18n="scan_selected">🔍 Scan selected</button>
+                    </div>
+                </div>
             </section>
 
             <!-- Scan results -->

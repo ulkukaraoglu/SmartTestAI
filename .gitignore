@@ -14,5 +14,14 @@ snyk-*.json
 .DS_Store
 Thumbs.db
 
+# Scan results (generated) — backend çalışınca otomatik oluşturulur
+results/
+
+# Web arayüzünden yüklenen geçici projeler (üretilen veri)
+test_projects/uploaded/
+
+# DeepSource geçici commit kök klasörü (Yol B; normalde otomatik silinir)
+uploads_tmp/
+
 # Test projects - all should be tracked
 # test_projects/* removed to allow all test projects

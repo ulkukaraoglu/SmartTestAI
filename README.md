@@ -260,9 +260,44 @@ curl -X POST http://localhost:5001/scan/deepsource \
   -d '{"project": "vulnerable_sql_injection"}'
 ```
 
-Yanıtta `"scan_mode": "repository"` ve gerçek issue sayıları görüyorsanız canlı veri akıyordur. `"scan_mode": "mock"` görüyorsanız token/owner/name yanlış olabilir ya da repo o klasörü henüz analiz etmemiştir.
+Yanıtta `"scan_mode": "repository"` ve gerçek issue sayıları görüyorsanız canlı veri akıyordur. `"available": false` ve bir `"reason"` (ör. `no_token`) görüyorsanız token/owner/name yanlış olabilir ya da repo o klasörü henüz analiz etmemiştir.
 
 **API endpoint:** `https://api.deepsource.com/graphql/` (eski `api.deepsource.io` değil). Gerekirse `DEEPSOURCE_API_URL` ile özelleştirilebilir.
+
+#### 5. (Opsiyonel) Yüklenen dosyaları gerçek taramak — GitHub token
+
+Web arayüzünden **yüklenen** dosyalar bağlı repoda olmadığı için DeepSource onları doğrudan tarayamaz. Bunu çözmek için "geçici commit" akışı (Yol B) vardır: yüklenen dosyalar bağlı repoya `uploads_tmp/<hash>/` altına **geçici olarak commit'lenir**, DeepSource analizi beklenir, sonuç çekilir ve dosyalar tekrar **silinir** (repo boyutu artmasın). Aynı dosyalar tekrar yüklenirse sonuç önbellekten gelir (repoya dokunulmaz).
+
+Bu akış için **contents:write** izinli bir GitHub Personal Access Token gerekir:
+
+1. GitHub → **Settings → Developer settings → Personal access tokens**.
+   - **Fine-grained token**: bu repoyu seçin, **Repository permissions → Contents → Read and write** verin.
+   - veya **classic token**: `repo` kapsamı.
+2. Token'ı `GITHUB_TOKEN` olarak ayarlayın.
+
+| Değişken | Ne işe yarar | Varsayılan |
+|----------|--------------|------------|
+| `GITHUB_TOKEN` | Geçici commit/silme için yazma izinli PAT (gerekli) | — |
+| `GITHUB_REPO_OWNER` | Hedef repo sahibi | yoksa `DEEPSOURCE_REPO_OWNER` |
+| `GITHUB_REPO_NAME` | Hedef repo adı | yoksa `DEEPSOURCE_REPO_NAME` |
+| `GITHUB_DEFAULT_BRANCH` | Commit'in atılacağı branch | `main` |
+| `DEEPSOURCE_RUN_TIMEOUT` | Analiz bekleme süresi (saniye) | `420` |
+| `DEEPSOURCE_RUN_INTERVAL` | Durum yoklama aralığı (saniye) | `12` |
+
+**PowerShell (Windows):**
+```powershell
+$env:DEEPSOURCE_API_TOKEN="<DeepSource PAT>"
+$env:DEEPSOURCE_REPO_OWNER="<github-kullanici-veya-org>"
+$env:DEEPSOURCE_REPO_NAME="SmartTestAI"
+$env:DEEPSOURCE_VCS_PROVIDER="GITHUB"
+$env:GITHUB_TOKEN="<GitHub yazma izinli PAT>"
+cd backend
+python app.py
+```
+
+> **Notlar:**
+> - GitHub token yoksa yüklenen dosyalar için sonuç `available:false`, `reason:"no_github_token"` döner (sabit `test_projects` yine gerçek veri verir).
+> - Geçici commit'ler default branch'e atılır ve hemen silinir; her yükleme = 2 commit. Analiz beklendiği için yükleme taraması **birkaç dakika** sürebilir.
 
 ## 📝 Sonuç Dosyaları
 

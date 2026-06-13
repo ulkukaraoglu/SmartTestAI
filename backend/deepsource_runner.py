@@ -35,11 +35,14 @@ Environment Variables:
 import json
 import subprocess
 import os
+import hashlib
+import time
 import requests
 from datetime import datetime
 from pathlib import Path
 from metrics.deepsource_metrics import DeepSourceMetrics
 from metrics.advanced_metrics import AdvancedMetricsCalculator
+import github_runner
 
 # Ground truth dosyasının yolu
 GROUND_TRUTH_FILE = "../test_projects/ground_truth.json"
@@ -223,39 +226,39 @@ def _tag_scan_mode(data: dict, mode: str) -> dict:
     return data
 
 
-def _get_mock_deepsource_output(target_path: str) -> dict:
+def _unavailable_output(reason: str) -> dict:
     """
-    Test için mock DeepSource çıktısı döner.
-    
-    Gerçek DeepSource API'sine erişim olmadığında veya test için kullanılır.
-    Gerçek API formatını simüle eder.
-    
+    DeepSource gerçek veri döndüremediğinde "kullanılamıyor" çıktısı üretir.
+
+    Mock/sahte veri YERİNE kullanılır. Boş ama geçerli bir GraphQL yapısı döner
+    (issue sayısı 0), ayrıca neden ve mod etiketlerini taşır. Böylece arayüz
+    sahte sayı göstermez; bunun yerine açık bir "kullanılamıyor" durumu gösterir.
+
+    reason değerleri:
+    - "uploaded":        Yüklenen dosya bağlı repoda değil (DeepSource tarayamaz)
+    - "no_token":        DEEPSOURCE_API_TOKEN ayarlı değil
+    - "no_github_token": Geçici commit için GITHUB_TOKEN/repo bilgisi yok (Yol B)
+    - "push_failed":     Dosyalar repoya gönderilemedi/silinemedi (GitHub hatası)
+    - "run_timeout":     DeepSource analizi zaman aşımına uğradı (commit beklenirken)
+    - "run_error":       DeepSource analizi başarısız/iptal oldu
+    - "api_error":       API/GraphQL hatası
+    - "network_error":   Ağ hatası
+
     Args:
-        target_path: Taranacak proje yolu (kullanılmıyor, mock için)
-    
+        reason: Kullanılamama nedeni
+
     Returns:
-        dict: Mock DeepSource çıktısı
+        dict: Etiketli boş çıktı
     """
-    # Mock format - DeepSource'un gerçek formatına göre güncellenmeli
     return {
-        "issues": [
-            {
-                "severity": "high",
-                "issue_code": "DS-PY-001",
-                "message": "Mock DeepSource issue - High severity",
-                "file": "app.py",
-                "line": 10
-            },
-            {
-                "severity": "medium",
-                "issue_code": "DS-PY-002",
-                "message": "Mock DeepSource issue - Medium severity",
-                "file": "app.py",
-                "line": 20
+        "_deepsource_scan_mode": "unavailable",
+        "_deepsource_reason": reason,
+        "data": {
+            "repository": {
+                "name": DEEPSOURCE_REPO_NAME,
+                "issues": {"totalCount": 0, "edges": []}
             }
-        ],
-        "scan_duration": 5.2,
-        "total_issues": 2
+        }
     }
 
 # ============================================
@@ -286,7 +289,330 @@ else:
     print(f"INFO: DeepSource API token bulundu (ilk 10 karakter: {DEEPSOURCE_API_TOKEN[:10]}...)")
 print(f"INFO: Repository: {DEEPSOURCE_REPO_OWNER}/{DEEPSOURCE_REPO_NAME}")
 
-def run_deepsource_scan(target_path: str, repo_path: str = None) -> dict:
+def _fetch_deepsource_issues_for_path(headers: dict, repo_path: str) -> dict:
+    """
+    Bağlı repodaki tüm issue'ları (occurrences ile) sayfalayarak çeker ve
+    yalnızca `repo_path` klasörü altındaki occurrence'lara sahip olanları döndürür.
+
+    DeepSource'un `issues(path:)` filtresi tek bir DOSYA yolu beklediğinden
+    (klasör verince boş döner), klasör bazlı filtrelemeyi burada kendimiz yapıyoruz.
+    Böylece "test_projects/<proje>/" altındaki gerçek issue'ları güvenle alırız.
+
+    Args:
+        headers: Authorization header'ları
+        repo_path: Repo içindeki klasör yolu (ör. "test_projects/flask_demo/")
+
+    Returns:
+        dict: GraphQL response benzeri yapı (yalnızca eşleşen edges ile)
+
+    Raises:
+        RuntimeError: API/GraphQL hatasında
+    """
+    norm = repo_path.strip("/")  # "test_projects/flask_demo"
+    query_str = """
+    query($after: String) {
+        repository(login: "%s", name: "%s", vcsProvider: %s) {
+            name
+            issues(first: 100, after: $after) {
+                totalCount
+                pageInfo { hasNextPage endCursor }
+                edges {
+                    node {
+                        issue { shortcode title severity category }
+                        occurrences(first: 100) {
+                            edges { node { path beginLine endLine } }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    """ % (DEEPSOURCE_REPO_OWNER, DEEPSOURCE_REPO_NAME, DEEPSOURCE_VCS_PROVIDER)
+
+    filtered_edges = []
+    repo_name = DEEPSOURCE_REPO_NAME
+    after = None
+    max_pages = 50  # güvenlik sınırı (5000 issue'ya kadar)
+
+    for _ in range(max_pages):
+        response = requests.post(
+            DEEPSOURCE_API_URL,
+            headers=headers,
+            json={"query": query_str, "variables": {"after": after}},
+            timeout=300
+        )
+        if response.status_code != 200:
+            raise RuntimeError(f"DeepSource API error: {response.status_code} - {response.text}")
+
+        data = response.json()
+        if "errors" in data:
+            raise RuntimeError(f"DeepSource GraphQL error: {data['errors']}")
+
+        repo = (data.get("data") or {}).get("repository") or {}
+        repo_name = repo.get("name", repo_name)
+        issues = repo.get("issues", {}) or {}
+
+        for edge in issues.get("edges", []):
+            node = edge.get("node", {})
+            occ_edges = node.get("occurrences", {}).get("edges", [])
+            # Bu issue'nun, hedef klasör altındaki occurrence'larını seç
+            matched = []
+            for oe in occ_edges:
+                path = (oe.get("node", {}).get("path", "") or "").strip("/")
+                if path == norm or path.startswith(norm + "/"):
+                    matched.append(oe)
+            if matched:
+                filtered_edges.append({
+                    "node": {
+                        "issue": node.get("issue", {}),
+                        "occurrences": {"edges": matched}
+                    }
+                })
+
+        page_info = issues.get("pageInfo", {})
+        if page_info.get("hasNextPage"):
+            after = page_info.get("endCursor")
+        else:
+            break
+
+    return {
+        "data": {
+            "repository": {
+                "name": repo_name,
+                "issues": {
+                    "totalCount": len(filtered_edges),
+                    "edges": filtered_edges
+                }
+            }
+        }
+    }
+
+
+# ============================================
+# YOL B: Yüklenen kodu repoya geçici koyup tarama
+# ============================================
+# Akış: içerik hash'i ile önbelleğe bak -> yoksa dosyaları repoya geçici commit'le ->
+# DeepSource analizini (commit'e göre) bekle -> sonuçları çek -> geçici dosyaları sil.
+
+# Yüklenen taramaların önbellek dosyası (aynı içerik tekrar yüklenirse tekrar uğraşma)
+UPLOAD_CACHE_FILE = "../results/uploaded_ds_cache.json"
+
+# DeepSource analizini beklerken kullanılan zaman aşımı ve sorgu aralığı (saniye)
+RUN_POLL_TIMEOUT = int(os.getenv("DEEPSOURCE_RUN_TIMEOUT", "600"))   # toplam bekleme bütçesi
+RUN_POLL_INTERVAL = int(os.getenv("DEEPSOURCE_RUN_INTERVAL", "10"))  # yoklamalar arası bekleme
+RUN_POLL_REQUEST_TIMEOUT = int(os.getenv("DEEPSOURCE_RUN_REQUEST_TIMEOUT", "45"))  # istek başına timeout
+RUN_POLL_INITIAL_DELAY = int(os.getenv("DEEPSOURCE_RUN_INITIAL_DELAY", "20"))  # ilk yoklamadan önce bekle
+
+
+def _hash_upload_dir(local_dir: str) -> str:
+    """
+    Yüklenen klasörün içeriğine göre kararlı bir SHA-256 hash üretir.
+
+    Dosya adı + içerik birlikte hashlenir; böylece aynı dosyalar tekrar
+    yüklendiğinde aynı hash elde edilir (önbellek ve "var mı yok mu" kontrolü için).
+    """
+    digest = hashlib.sha256()
+    base = Path(local_dir)
+    for path in sorted(base.rglob("*")):
+        if not path.is_file():
+            continue
+        rel = path.relative_to(base).as_posix()
+        digest.update(rel.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
+def _load_upload_cache() -> dict:
+    """Yüklenen tarama önbelleğini yükler (yoksa boş döner)."""
+    try:
+        p = Path(UPLOAD_CACHE_FILE)
+        if p.exists():
+            with open(p, "r", encoding="utf-8") as f:
+                return json.load(f)
+    except Exception as e:
+        print(f"WARNING: Yukleme onbellegi okunamadi: {e}")
+    return {}
+
+
+def _save_upload_cache(content_hash: str, raw_result: dict) -> None:
+    """Bir içerik hash'i için tarama sonucunu önbelleğe yazar."""
+    try:
+        cache = _load_upload_cache()
+        cache[content_hash] = raw_result
+        p = Path(UPLOAD_CACHE_FILE)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with open(p, "w", encoding="utf-8") as f:
+            json.dump(cache, f, ensure_ascii=False)
+    except Exception as e:
+        print(f"WARNING: Yukleme onbellegi yazilamadi: {e}")
+
+
+def _wait_for_deepsource_run(headers: dict, commit_oid: str) -> str:
+    """
+    Belirli bir commit için DeepSource analiz çalışmasının (run) bitmesini bekler.
+
+    DeepSource `run(commitOid:)` sorgusu ile durumu yoklar. Push edilen commit
+    için analiz tetiklenene ve sonuçlanana kadar (zaman aşımına kadar) bekler.
+
+    Args:
+        headers: DeepSource Authorization header'ları
+        commit_oid: Beklenen commit SHA'sı
+
+    Returns:
+        str: Terminal durum ("SUCCESS"/"FAILURE"/"SKIPPED"/"TIMEOUT"/"CANCEL")
+             veya zaman aşımında "TIMEOUT".
+    """
+    # NOT: Kök `run(commitOid:)` sorgusu bu ağda güvenilmez (istek takılıp okuma
+    # zaman aşımına düşüyor). Bunun yerine, sağlıklı çalışan `repository` sorgusunun
+    # `analysisRuns` listesini kullanıp commit'imize ait run'ı buluyoruz.
+    query = """
+    query {
+        repository(name: "%s", login: "%s", vcsProvider: %s) {
+            analysisRuns(first: 20) {
+                edges {
+                    node {
+                        commitOid
+                        status
+                    }
+                }
+            }
+        }
+    }
+    """ % (DEEPSOURCE_REPO_NAME, DEEPSOURCE_REPO_OWNER, DEEPSOURCE_VCS_PROVIDER)
+
+    done_states = {"SUCCESS", "FAILURE", "SKIPPED"}
+    bad_states = {"TIMEOUT", "CANCEL"}
+    deadline = time.time() + RUN_POLL_TIMEOUT
+    short = commit_oid[:8]
+
+    # DeepSource'un push'u alıp analiz çalışmasını (run) oluşturması zaman alır;
+    # ilk yoklamadan önce kısa bir süre bekleyerek boşa istek atmayı azaltırız.
+    if RUN_POLL_INITIAL_DELAY > 0:
+        time.sleep(RUN_POLL_INITIAL_DELAY)
+
+    while time.time() < deadline:
+        try:
+            response = requests.post(
+                DEEPSOURCE_API_URL,
+                headers=headers,
+                json={"query": query},
+                timeout=RUN_POLL_REQUEST_TIMEOUT,
+            )
+            if response.status_code == 200:
+                data = response.json()
+                repo = (data.get("data") or {}).get("repository") or {}
+                edges = (repo.get("analysisRuns") or {}).get("edges", [])
+                status = None
+                for edge in edges:
+                    node = edge.get("node") or {}
+                    node_oid = node.get("commitOid") or ""
+                    # Commit eşleştir (tam veya prefix; kısa/uzun SHA farkına dayanıklı)
+                    if node_oid == commit_oid or node_oid.startswith(commit_oid) or commit_oid.startswith(node_oid):
+                        status = node.get("status")
+                        break
+                if status in done_states:
+                    print(f"INFO: DeepSource analizi tamamlandi (commit {short}): {status}")
+                    return status
+                if status in bad_states:
+                    print(f"WARNING: DeepSource analizi hatali bitti (commit {short}): {status}")
+                    return status
+                # Run henüz yok / PENDING / READY -> beklemeye devam
+                print(f"INFO: DeepSource analizi bekleniyor (commit {short}, durum={status})")
+            else:
+                print(f"WARNING: analysisRuns sorgusu {response.status_code}: {response.text[:200]}")
+        except requests.exceptions.RequestException as e:
+            print(f"WARNING: run durumu sorgulanamadi, tekrar denenecek: {e}")
+        time.sleep(RUN_POLL_INTERVAL)
+
+    print(f"WARNING: DeepSource run zaman asimi (commit {short})")
+    return "TIMEOUT"
+
+
+def _scan_uploaded_via_repo(target_path: str) -> dict:
+    """
+    Yüklenen dosyalar için Yol B akışını yürütür.
+
+    1. İçerik hash'ine göre önbelleğe bakar (varsa sonucu döndürür).
+    2. Dosyaları repoda `uploads_tmp/<hash>/` altına geçici commit'ler.
+    3. O commit için DeepSource analizinin bitmesini bekler.
+    4. O klasöre ait issue'ları çeker (path-filtreli).
+    5. Geçici dosyaları repodan siler (boyut artmasın).
+    6. Sonucu önbelleğe yazar ve etiketleyerek döndürür.
+
+    Args:
+        target_path: Yüklenen dosyaların bulunduğu yerel klasör
+
+    Returns:
+        dict: Etiketlenmiş GraphQL benzeri çıktı veya _unavailable_output(...)
+    """
+    # DeepSource API token'ı olmadan analiz durumu/sonuçları çekilemez
+    if not DEEPSOURCE_API_TOKEN:
+        return _unavailable_output("no_token")
+
+    content_hash = _hash_upload_dir(target_path)
+
+    # 1) Önbellek: aynı içerik daha önce tarandıysa tekrar repoya dokunma
+    cached = _load_upload_cache().get(content_hash)
+    if cached:
+        print(f"INFO: Yuklenen icerik onbellekte bulundu (hash {content_hash[:8]}). Repoya gerek yok.")
+        return _tag_scan_mode(json.loads(json.dumps(cached)), "repository_cached")
+
+    # 2) Geçici commit için GitHub yapılandırması gerekli
+    if not github_runner.is_configured():
+        print("WARNING: GITHUB_TOKEN/repo bilgisi yok. Yuklenen kod repoya gonderilemez. Sonuc: kullanilamiyor.")
+        return _unavailable_output("no_github_token")
+
+    headers = {
+        "Authorization": f"Bearer {DEEPSOURCE_API_TOKEN}",
+        "Content-Type": "application/json",
+    }
+    subdir = content_hash[:16]
+    repo_path = f"{github_runner.TMP_ROOT}/{subdir}/"
+    push_info = None
+
+    try:
+        # 2) Dosyaları repoya geçici olarak gönder
+        print(f"INFO: Yuklenen dosyalar repoya gonderiliyor: {repo_path}")
+        push_info = github_runner.push_temp_files(target_path, subdir)
+        commit_sha = push_info["commit_sha"]
+
+        # 3) DeepSource analizinin bitmesini bekle
+        print(f"INFO: DeepSource analizi bekleniyor (commit {commit_sha[:8]})...")
+        status = _wait_for_deepsource_run(headers, commit_sha)
+        if status == "TIMEOUT":
+            return _unavailable_output("run_timeout")
+        if status == "CANCEL":
+            return _unavailable_output("run_error")
+
+        # 4) Bu klasöre ait gerçek issue'ları çek (path-filtreli)
+        result = _fetch_deepsource_issues_for_path(headers, repo_path)
+
+        # 6) Önbelleğe yaz ve etiketle
+        _save_upload_cache(content_hash, result)
+        return _tag_scan_mode(result, "repository_temp")
+
+    except github_runner.GitHubError as e:
+        print(f"WARNING: GitHub gecici commit hatasi: {e}")
+        return _unavailable_output("push_failed")
+    except requests.exceptions.RequestException as e:
+        print(f"WARNING: DeepSource API hatasi (uploaded): {e}")
+        return _unavailable_output("network_error")
+    except Exception as e:
+        print(f"WARNING: Yuklenen tarama beklenmeyen hata: {e}")
+        return _unavailable_output("api_error")
+    finally:
+        # 5) Geçici dosyaları her durumda temizle (repo boyutu artmasin)
+        if push_info:
+            try:
+                print(f"INFO: Gecici dosyalar repodan siliniyor: {repo_path}")
+                github_runner.delete_temp_path(push_info["paths"], subdir)
+            except Exception as e:
+                print(f"WARNING: Gecici dosyalar silinemedi ({repo_path}): {e}")
+
+
+def run_deepsource_scan(target_path: str, repo_path: str = None, uploaded: bool = False) -> dict:
     """
     DeepSource taraması yapar ve JSON çıktısı döner.
     
@@ -303,7 +629,10 @@ def run_deepsource_scan(target_path: str, repo_path: str = None) -> dict:
     Args:
         target_path: Taranacak proje yolu (CLI için kullanılır)
         repo_path: Bağlı repo içindeki klasör yolu (ör. "test_projects/flask_demo/").
-                   None ise gerçek API atlanır ve mock'a düşülür (kod repoda olmadığından).
+                   None ise gerçek API atlanır (kod repoda olmadığından).
+        uploaded: True ise (web'den yüklenen proje) Yol B akışı çalışır:
+                  dosyalar repoya geçici commit'lenir, analiz beklenir,
+                  sonuç çekilir ve dosyalar tekrar silinir.
     
     Returns:
         dict: DeepSource'un JSON çıktısı (GraphQL response formatı)
@@ -311,6 +640,12 @@ def run_deepsource_scan(target_path: str, repo_path: str = None) -> dict:
     Raises:
         RuntimeError: API hatası veya timeout durumunda
     """
+    # ============================================
+    # YÖNTEM 0: Yüklenen proje -> Yol B (repoya geçici commit + analiz + temizlik)
+    # ============================================
+    if uploaded:
+        return _scan_uploaded_via_repo(target_path)
+
     # ============================================
     # YÖNTEM 1: DeepSource CLI kullanımı
     # ============================================
@@ -356,93 +691,40 @@ def run_deepsource_scan(target_path: str, repo_path: str = None) -> dict:
                 "Content-Type": "application/json"
             }
             
-            # GraphQL query: Repository issues'ları al
-            # path: Sadece bu klasördeki occurrence'lara sahip issue'ları getirir
-            # occurrences: Her issue'nun gerçek dosya/satır konumları (ground truth eşleştirmesi için)
-            query = {
-                "query": """
-                query {
-                    repository(login: "%s", name: "%s", vcsProvider: %s) {
-                        name
-                        issues(first: 100, path: "%s") {
-                            totalCount
-                            edges {
-                                node {
-                                    issue {
-                                        shortcode
-                                        title
-                                        severity
-                                        category
-                                    }
-                                    occurrences(first: 50) {
-                                        edges {
-                                            node {
-                                                path
-                                                beginLine
-                                                endLine
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                """ % (DEEPSOURCE_REPO_OWNER, DEEPSOURCE_REPO_NAME, DEEPSOURCE_VCS_PROVIDER, repo_path)
-            }
+            # Tüm issue'ları çekip occurrence yoluna göre repo_path altına filtrele.
+            # (DeepSource'un issues(path:) filtresi dosya bekler, klasör için güvenilir değil.)
+            result = _fetch_deepsource_issues_for_path(headers, repo_path)
             
-            # GraphQL API'ye POST isteği gönder
-            response = requests.post(
-                DEEPSOURCE_API_URL,
-                headers=headers,
-                json=query,
-                timeout=300  # 5 dakika timeout
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                # GraphQL hata kontrolü
-                if "errors" in result:
-                    error_msg = f"DeepSource GraphQL error: {result['errors']}"
-                    print(f"WARNING: {error_msg}")
-                    # Hata olsa bile mock moda geçmek yerine boş sonuç döndür
-                    return _tag_scan_mode({
-                        "data": {
-                            "repository": {
-                                "name": DEEPSOURCE_REPO_NAME,
-                                "issues": {
-                                    "totalCount": 0,
-                                    "edges": []
-                                }
-                            }
-                        }
-                    }, "repository")
-                # Başarılı - boş sonuç da geçerli (repository'de issue yok)
-                # NOT: Sonuçlar yapılandırılmış repo geneline aittir, yüklenen koda özel DEĞİL
-                return _tag_scan_mode(result, "repository")
-            else:
-                error_msg = f"DeepSource API error: {response.status_code} - {response.text}"
-                print(f"WARNING: {error_msg}")
-                # API hatası - mock moda geç
-                return _tag_scan_mode(_get_mock_deepsource_output(target_path), "mock")
+            # Başarılı - boş sonuç da geçerli (bu klasörde issue yok demektir)
+            # NOT: Sonuçlar yalnızca bu proje klasörüne aittir (path ile filtrelendi)
+            return _tag_scan_mode(result, "repository")
         
         except requests.exceptions.RequestException as e:
             error_msg = f"DeepSource API request failed: {str(e)}"
             print(f"WARNING: {error_msg}")
-            # Network hatası - mock moda geç
-            return _tag_scan_mode(_get_mock_deepsource_output(target_path), "mock")
+            # Ağ hatası - mock YOK, kullanılamıyor olarak işaretle
+            return _unavailable_output("network_error")
         except Exception as e:
             error_msg = f"DeepSource API unexpected error: {str(e)}"
             print(f"WARNING: {error_msg}")
-            # Beklenmeyen hata - mock moda geç
-            return _tag_scan_mode(_get_mock_deepsource_output(target_path), "mock")
+            # Beklenmeyen/GraphQL hatası - mock YOK, kullanılamıyor
+            return _unavailable_output("api_error")
     
     # ============================================
-    # YÖNTEM 3: Mock/Test verisi
+    # YÖNTEM 3: Gerçek veri alınamadı -> KULLANILAMIYOR (mock YOK)
     # ============================================
-    # API token yoksa veya tüm yöntemler başarısız olduysa mock moda geç
-    print("WARNING: DeepSource API token bulunamadi veya API cagrisi basarisiz. Test modu kullaniliyor...")
-    return _tag_scan_mode(_get_mock_deepsource_output(target_path), "mock")
+    # Buraya gelmenin iki nedeni olabilir; ayrı ayrı logla ki sebep net olsun.
+    if not repo_path:
+        # Yüklenen dosya bağlı repoda olmadığından gerçek API kullanılamaz (tasarım gereği)
+        print("INFO: Yuklenen proje bagli repoda olmadigi icin DeepSource gercek tarama yapamaz. Sonuc: kullanilamiyor.")
+        return _unavailable_output("uploaded")
+    elif not DEEPSOURCE_API_TOKEN:
+        # Sabit test projesi ama token yok
+        print("WARNING: DEEPSOURCE_API_TOKEN ayarli degil. Gercek DeepSource verisi icin token gerekli. Sonuc: kullanilamiyor.")
+        return _unavailable_output("no_token")
+    else:
+        print("WARNING: DeepSource gercek tarama yapilamadi. Sonuc: kullanilamiyor.")
+        return _unavailable_output("api_error")
 
 
 def save_scan_result(raw_output: dict, tool_name: str, project_name: str) -> str:
@@ -503,7 +785,7 @@ def run_deepsource_scan_and_save(project_name: str) -> dict:
         
         # Bağlı repo içindeki klasör yolunu belirle.
         # Sabit test_projects bağlı repoda olduğundan gerçek (path-filtreli) veri çekilebilir.
-        # Yüklenen projeler repoda olmadığından gerçek API atlanır (mock'a düşer).
+        # Yüklenen projeler repoda olmadığından Yol B (geçici commit) ile taranır.
         repo_path = None if is_uploaded else f"test_projects/{project_name}/"
         
         # Proje var mı kontrol et
@@ -517,15 +799,40 @@ def run_deepsource_scan_and_save(project_name: str) -> dict:
         # Tarama süresini ölç (gerçek süre)
         scan_start_time = time.time()
         
-        # Tarama yap (repo_path ile sabit projeler için gerçek/projeye özel veri çekilir)
-        raw_output = run_deepsource_scan(target_path, repo_path=repo_path)
+        # Tarama yap:
+        # - Sabit projeler: repo_path ile gerçek/projeye özel veri çekilir.
+        # - Yüklenen projeler: uploaded=True ile Yol B (repoya geçici commit + analiz) çalışır.
+        raw_output = run_deepsource_scan(target_path, repo_path=repo_path, uploaded=is_uploaded)
         
-        # Tarama modunu çıkar (ham çıktıyı kirletmemek için kaydetmeden önce pop et)
-        # "cli" -> yüklenen kod yerelde tarandı, "repository" -> repo geneli, "mock" -> demo veri
-        scan_mode = raw_output.pop("_deepsource_scan_mode", "mock") if isinstance(raw_output, dict) else "mock"
+        # Tarama modunu/nedenini çıkar (ham çıktıyı kirletmemek için pop et)
+        # "cli"/"repository" -> gerçek veri, "unavailable" -> gerçek veri alınamadı (mock YOK)
+        scan_mode = raw_output.pop("_deepsource_scan_mode", "unavailable") if isinstance(raw_output, dict) else "unavailable"
+        reason = raw_output.pop("_deepsource_reason", None) if isinstance(raw_output, dict) else None
         
         # Gerçek tarama süresini hesapla
         actual_scan_duration = time.time() - scan_start_time
+        
+        # DeepSource gerçek veri döndüremediyse: sahte sonuç gösterme, "kullanılamıyor" döndür
+        if scan_mode == "unavailable":
+            return {
+                "success": True,
+                "project": project_name,
+                "available": False,
+                "scan_mode": "unavailable",
+                "reason": reason or "api_error",
+                "file_path": None,
+                "advanced_metrics_file_path": None,
+                "metric_result": {
+                    "tool_name": "DeepSource",
+                    "critical": 0,
+                    "high": 0,
+                    "medium": 0,
+                    "low": 0,
+                    "total_issues": 0,
+                    "scan_duration": actual_scan_duration
+                },
+                "advanced_metrics": {}
+            }
         
         # Sonucu kaydet
         saved_path = save_scan_result(raw_output, "deepsource", project_name)
@@ -614,6 +921,7 @@ def run_deepsource_scan_and_save(project_name: str) -> dict:
         return {
             "success": True,
             "project": project_name,
+            "available": True,
             "file_path": saved_path,
             "advanced_metrics_file_path": advanced_file_path,
             "metric_result": metric_dict,
