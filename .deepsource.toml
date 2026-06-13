@@ -1,5 +1,15 @@
 version = 1
 
+# Analiz dışı tutulan yollar (gürültü azaltma).
+# NOT: test_projects/'in geri kalanı bilerek analiz edilir; kıyaslama için
+# bu projelerin gerçek DeepSource sonuçlarına ihtiyacımız var.
+exclude_patterns = [
+  "test_projects/uploaded/**",  # web arayüzünden yüklenen geçici projeler
+  "results/**",                 # tarama çıktıları (JSON)
+  "venv/**",                    # sanal ortam
+  "**/__pycache__/**"           # Python cache
+]
+
 [[analyzers]]
 name = "python"
 enabled = true
